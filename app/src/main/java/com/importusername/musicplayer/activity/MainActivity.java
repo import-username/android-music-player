@@ -1,9 +1,11 @@
 package com.importusername.musicplayer.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import com.importusername.musicplayer.AppURL;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.util.AppConfig;
 
@@ -16,11 +18,13 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        try {
-            System.out.println(AppConfig.getProperty("url;", getApplicationContext()) == null);
-            Log.d(null, AppConfig.getProperty("url;", getApplicationContext()));
-        } catch (IOException e) {
-            e.printStackTrace();
+        AppURL.loadUrl(getApplicationContext());
+
+        if (AppURL.getAppUrl() == null) {
+            // TODO - load connection activity
+            //
+        } else {
+            // TODO - send request to server, load music player menu if status 200
         }
     }
 }

@@ -20,13 +20,17 @@ public class AppConfig {
      * @return Property value or null if it doesn't exist.
      * @throws IOException
      */
-    public static String getProperty(String key, Context ctx) throws IOException {
-        final Properties properties = new Properties();
+    public static String getProperty(String key, Context ctx) {
+        try {
+            final Properties properties = new Properties();
 
-        final AssetManager assetManager = ctx.getAssets();
+            final AssetManager assetManager = ctx.getAssets();
 
-        properties.load(assetManager.open("config.properties"));
+            properties.load(assetManager.open("config.properties"));
 
-        return properties.getProperty(key);
+            return properties.getProperty(key);
+        } catch (IOException exc) {
+            return null;
+        }
     }
 }
