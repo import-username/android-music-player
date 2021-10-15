@@ -16,15 +16,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
-
-        AppURL.loadUrl(getApplicationContext());
+        AppURL.loadUrl(MainActivity.this.getApplicationContext());
 
         if (AppURL.getAppUrl() == null) {
-            // TODO - load connection activity
-            //
+            setContentView(R.layout.activity_connection);
         } else {
             // TODO - send request to server, load music player menu if status 200
+            setContentView(R.layout.activity_connection);
         }
     }
 }
