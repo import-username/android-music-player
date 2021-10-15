@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Music Player</string>
+    <string name="connection_menu_icon_description">Music Note</string>
+    <string name="connection_menu_icon_text">Music Player</string>
+    <string name="connection_menu_header_text">Failed to establish connection.</string>
+    <string name="connection_menu_header_text_2">Please enter url to your music player server.</string>
+    <string name="connection_menu_input_hint">Enter URL...</string>
+    <string name="connection_menu_button_text">Connect</string>
 </resources>
