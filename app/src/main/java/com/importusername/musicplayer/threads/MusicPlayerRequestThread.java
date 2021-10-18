@@ -15,7 +15,7 @@ public class MusicPlayerRequestThread extends Thread {
 
     /**
      * @param url Url to send request to.
-     * @param action 
+     * @param action
      */
     public MusicPlayerRequestThread(String url, IHttpRequestAction action) {
         this.url = url;
