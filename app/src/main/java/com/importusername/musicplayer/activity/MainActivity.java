@@ -16,13 +16,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        AppURL.loadUrl(MainActivity.this.getApplicationContext());
+        final Intent connectionIntent = new Intent(MainActivity.this, ConnectionActivity.class);
 
-        if (AppURL.getAppUrl() == null) {
-            setContentView(R.layout.activity_connection);
+        if (AppURL.getAppUrl(this) == null) {
+            startActivity(connectionIntent);
         } else {
             // TODO - send request to server, load music player menu if status 200
-            setContentView(R.layout.activity_connection);
+            startActivity(connectionIntent);
         }
     }
 }
