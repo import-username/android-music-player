@@ -14,4 +14,6 @@
     <color name="red">#FF0000</color>
     <color name="connection_activity_background">#1B1B1B</color>
     <color name="connection_menu_input_background">#333333</color>
+    <color name="music_player_nav_item_checked">#FFFFFFFF</color>
+    <color name="music_player_nav_item_unchecked">#AFAFAF</color>
 </resources>

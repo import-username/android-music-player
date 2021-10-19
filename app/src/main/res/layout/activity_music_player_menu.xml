@@ -22,8 +22,10 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:menu="@menu/music_player_navbar_menu"
+            android:foregroundTint="@color/black"
             app:layout_anchorGravity="bottom"
-            app:itemTextColor="@color/white"
-            app:itemIconTint="@color/white"
-            android:background="@color/app_primary_variant_color"/>
+            app:itemTextColor="@color/music_player_nav_color"
+            app:itemIconTint="@color/music_player_nav_color"
+            android:background="@color/app_primary_variant_color"
+            app:labelVisibilityMode="labeled"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,4 +4,13 @@
         android:title="@string/music_player_home_item_text"
         android:icon="@drawable/outline_home_24"
         />
+    <item android:id="@+id/music_player_action_songs"
+        android:title="@string/music_player_songs_item_text"
+        android:icon="@drawable/outline_music_note_24"/>
+    <item android:id="@+id/music_player_action_playlists"
+        android:title="@string/music_player_playlists_item_text"
+        android:icon="@drawable/outline_library_music_24"/>
+    <item android:id="@+id/music_player_action_settings"
+          android:title="@string/music_player_settings_item_text"
+          android:icon="@drawable/outline_settings_24"/>
 </menu>

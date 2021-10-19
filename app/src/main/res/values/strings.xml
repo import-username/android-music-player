@@ -7,4 +7,7 @@
     <string name="connection_menu_input_hint">Enter URL...</string>
     <string name="connection_menu_button_text">Connect</string>
     <string name="music_player_home_item_text">Home</string>
+    <string name="music_player_songs_item_text">Songs</string>
+    <string name="music_player_playlists_item_text">Playlists</string>
+    <string name="music_player_settings_item_text">Settings</string>
 </resources>
