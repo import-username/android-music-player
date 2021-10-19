@@ -7,9 +7,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.importusername.musicplayer.AppURL;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.http.MusicPlayerRequest;
+import com.importusername.musicplayer.interfaces.IHttpRequestAction;
+import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 public class MainActivity extends AppCompatActivity {
     @Override
@@ -21,8 +25,23 @@ public class MainActivity extends AppCompatActivity {
         if (AppURL.getAppUrl(this) == null) {
             startActivity(connectionIntent);
         } else {
-            // TODO - send request to server, load music player menu if status 200
-            startActivity(connectionIntent);
+            final MusicPlayerRequestThread musicPlayerRequestThread = new MusicPlayerRequestThread(AppURL.getAppUrl(this) + "/verify-music-player", this.musicPlayerRequestAction());
+
+            musicPlayerRequestThread.start();
         }
+    }
+
+    private IHttpRequestAction musicPlayerRequestAction() {
+        return (status) -> {
+            if (status == 200) {
+                final Intent musicPlayerIntent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+
+                this.startActivity(musicPlayerIntent);
+            } else {
+                final Intent connectionIntent = new Intent(MainActivity.this, ConnectionActivity.class);
+
+                this.startActivity(connectionIntent);
+            }
+        };
     }
 }
