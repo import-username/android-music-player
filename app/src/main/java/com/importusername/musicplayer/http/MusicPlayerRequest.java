@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.http;
 
+import android.util.Log;
 import androidx.annotation.Nullable;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 
@@ -36,33 +37,37 @@ public class MusicPlayerRequest {
      * @throws IOException
      */
     public void get(Map<String, String> headers) throws IOException {
-        // Create URL object from url field
-        final URL url = new URL(this.url);
+        try {
+            // Create URL object from url field
+            URL url = new URL(this.url);
 
-        // Open http connection, allowing input from server to client and setting method as GET
-        final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setDoInput(true);
-        urlConnection.setRequestMethod("GET");
+            // Open http connection, allowing input from server to client and setting method as GET
+            final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setDoInput(true);
+            urlConnection.setRequestMethod("GET");
 
-        // Add headers to request
-        for (String header : headers.keySet()) {
-            urlConnection.setRequestProperty(header, headers.get(header));
+            // Add headers to request
+            for (String header : headers.keySet()) {
+                urlConnection.setRequestProperty(header, headers.get(header));
+            }
+
+            // Send request
+            urlConnection.connect();
+
+            // Get response status code
+            this.responseStatus = urlConnection.getResponseCode();
+
+            // Set response headers field.
+            this.responseHeaders = urlConnection.getHeaderFields();
+
+            // Read response message
+            this.readHttpResponseBody(urlConnection.getInputStream());
+
+            // Close connection
+            urlConnection.disconnect();
+        } catch (MalformedURLException exc) {
+            this.responseStatus = 404;
         }
-
-        // Send request
-        urlConnection.connect();
-
-        // Get response status code
-        this.responseStatus = urlConnection.getResponseCode();
-
-        // Set response headers field.
-        this.responseHeaders = urlConnection.getHeaderFields();
-
-        // Read response message
-        this.readHttpResponseBody(urlConnection.getInputStream());
-
-        // Close connection
-        urlConnection.disconnect();
     }
 
     /**
@@ -70,28 +75,32 @@ public class MusicPlayerRequest {
      * @throws IOException
      */
     public void get() throws IOException {
-        // Create URL object from url field
-        final URL url = new URL(this.url);
+        try {
+            // Create URL object from url field
+            URL url = new URL(this.url);
 
-        // Open http connection, allowing input from server to client and setting method as GET
-        final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        urlConnection.setDoInput(true);
-        urlConnection.setRequestMethod("GET");
+            // Open http connection, allowing input from server to client and setting method as GET
+            final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setDoInput(true);
+            urlConnection.setRequestMethod("GET");
 
-        // Send request
-        urlConnection.connect();
+            // Send request
+            urlConnection.connect();
 
-        // Get response status code
-        this.responseStatus = urlConnection.getResponseCode();
+            // Get response status code
+            this.responseStatus = urlConnection.getResponseCode();
 
-        // Set response headers field.
-        this.responseHeaders = urlConnection.getHeaderFields();
+            // Set response headers field.
+            this.responseHeaders = urlConnection.getHeaderFields();
 
-        // Read response message
-        this.readHttpResponseBody(urlConnection.getInputStream());
+            // Read response message
+            this.readHttpResponseBody(urlConnection.getInputStream());
 
-        // Close connection
-        urlConnection.disconnect();
+            // Close connection
+            urlConnection.disconnect();
+        } catch (MalformedURLException exc) {
+            this.responseStatus = 404;
+        }
     }
 
     /**
