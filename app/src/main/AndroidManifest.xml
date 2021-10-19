@@ -18,5 +18,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.ConnectionActivity" />
+        <activity android:name=".activity.MusicPlayerActivity" />
     </application>
 </manifest>
