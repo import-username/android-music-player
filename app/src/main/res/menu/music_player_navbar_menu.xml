@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/music_player_action_home"
+        android:title="@string/music_player_home_item_text"
+        android:icon="@drawable/outline_home_24"
+        />
+</menu>

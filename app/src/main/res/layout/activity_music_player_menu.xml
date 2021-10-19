@@ -2,6 +2,18 @@
 <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/music_player_navbar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:menu="@menu/music_player_navbar_menu"
+            app:layout_anchorGravity="bottom"
+            app:itemTextColor="@color/white"
+            app:itemIconTint="@color/white"
+            android:background="@color/app_primary_variant_color"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
