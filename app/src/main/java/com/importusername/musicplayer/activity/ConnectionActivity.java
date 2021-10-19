@@ -11,6 +11,9 @@ import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * Activity for connecting to music player server.
  */
@@ -33,11 +36,37 @@ public class ConnectionActivity extends AppCompatActivity {
             EditText urlInput = findViewById(R.id.connection_menu_input);
 
             if (urlInput != null) {
-                final MusicPlayerRequestThread connectionRequestThread = new MusicPlayerRequestThread(urlInput.getText().toString(), this.connectionAction());
+                String urlString = "";
+
+                try {
+                    urlString = this.getUrlDomain(urlInput.getText().toString(), true, false);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+
+                final MusicPlayerRequestThread connectionRequestThread = new MusicPlayerRequestThread("http://" + urlString + "/verify-music-player", this.connectionAction());
 
                 connectionRequestThread.start();
             }
         };
+    }
+
+    private String getUrlDomain(String urlString, boolean includePort, boolean includeProtocol) throws MalformedURLException {
+        final URL url = new URL(urlString);
+
+        String parsedUrl = "";
+
+        if (includeProtocol && url.getProtocol().length() > 0) {
+            parsedUrl += url.getProtocol();
+        }
+
+        parsedUrl = url.getHost();
+
+        if (includePort && url.getPort() > 0) {
+            parsedUrl += ":" + url.getPort();
+        }
+
+        return parsedUrl;
     }
 
     private IHttpRequestAction connectionAction() {
@@ -46,9 +75,15 @@ public class ConnectionActivity extends AppCompatActivity {
             public void requestAction(int status) {
                 if (status == 200) {
                     final EditText urlInput = findViewById(R.id.connection_menu_input);
+                    String urlString = "";
 
-                    System.out.println(status);
-                    AppURL.setAppUrl(urlInput.getText().toString(), ConnectionActivity.this);
+                    try {
+                        urlString = "http://" + ConnectionActivity.this.getUrlDomain(urlInput.getText().toString(), true, false);
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
+
+                    AppURL.setAppUrl(urlString, ConnectionActivity.this);
                 }
             }
         };
