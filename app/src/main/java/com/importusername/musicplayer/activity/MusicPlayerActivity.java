@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.fragments.HomeMenuFragment;
 import com.importusername.musicplayer.fragments.PlaylistsMenuFragment;
@@ -17,13 +18,15 @@ public class MusicPlayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         this.setContentView(R.layout.activity_music_player_menu);
 
-        BottomNavigationView navigationView = findViewById(R.id.music_player_navbar);
+        final BottomNavigationView navigationView = findViewById(R.id.music_player_navbar);
 
+        navigationView.setOnItemSelectedListener(this.musicPlayerNavigationListener());
+    }
 
-        navigationView.setOnItemSelectedListener((item) -> {
+    private NavigationBarView.OnItemSelectedListener musicPlayerNavigationListener() {
+        return (item) -> {
             switch(item.getTitle().toString()) {
                 case "Home":
                     fragmentManager.beginTransaction()
@@ -52,6 +55,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             }
 
             return true;
-        });
+        };
     }
 }
