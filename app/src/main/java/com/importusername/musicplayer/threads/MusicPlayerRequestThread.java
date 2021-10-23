@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.threads;
 
+import android.content.Context;
 import com.importusername.musicplayer.http.MusicPlayerRequest;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 
@@ -10,6 +11,10 @@ import java.io.IOException;
  */
 public class MusicPlayerRequestThread extends Thread {
     private final String url;
+
+    private Context applicationContext;
+
+    private boolean authenticate;
 
     private final IHttpRequestAction requestAction;
 
@@ -22,9 +27,22 @@ public class MusicPlayerRequestThread extends Thread {
         this.requestAction = action;
     }
 
+    public MusicPlayerRequestThread(String url, Context applicationContext, boolean authenticate, IHttpRequestAction action) {
+        this.url = url;
+        this.applicationContext = applicationContext;
+        this.authenticate = authenticate;
+        this.requestAction = action;
+    }
+
     @Override
     public void run() {
-        final MusicPlayerRequest musicPlayerRequest = new MusicPlayerRequest(this.url);
+        final MusicPlayerRequest musicPlayerRequest;
+
+        if (this.authenticate) {
+             musicPlayerRequest = new MusicPlayerRequest(this.url, true, this.applicationContext);
+        } else {
+            musicPlayerRequest = new MusicPlayerRequest(this.url);
+        }
 
         try {
             musicPlayerRequest.get();

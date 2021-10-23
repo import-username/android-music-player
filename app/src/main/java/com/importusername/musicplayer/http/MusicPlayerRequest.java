@@ -1,8 +1,11 @@
 package com.importusername.musicplayer.http;
 
+import android.content.Context;
 import android.util.Log;
 import androidx.annotation.Nullable;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
+import com.importusername.musicplayer.util.AppConfig;
+import com.importusername.musicplayer.util.AppCookie;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -20,6 +23,8 @@ import java.util.Map;
  */
 public class MusicPlayerRequest {
     private final String url;
+    private boolean authenticate;
+    private Context applicationContext;
 
     private int responseStatus;
 
@@ -29,6 +34,12 @@ public class MusicPlayerRequest {
 
     public MusicPlayerRequest(String url) {
         this.url = url;
+    }
+
+    public MusicPlayerRequest(String url, boolean authenticate, Context applicationContext) {
+        this.url = url;
+        this.authenticate = authenticate;
+        this.applicationContext = applicationContext;
     }
 
     /**
@@ -47,9 +58,7 @@ public class MusicPlayerRequest {
             urlConnection.setRequestMethod("GET");
 
             // Add headers to request
-            for (String header : headers.keySet()) {
-                urlConnection.setRequestProperty(header, headers.get(header));
-            }
+            this.setRequestHeaders(urlConnection, headers);
 
             // Send request
             urlConnection.connect();
@@ -104,8 +113,28 @@ public class MusicPlayerRequest {
     }
 
     /**
+     * Adds request property to HttpURLConnection object for every header in map object.
+     * @param connection HttpURLConnection object.
+     * @param headers Map of key/values representing request headers.
+     */
+    public void setRequestHeaders(HttpURLConnection connection, Map<String, String> headers) {
+        for (String header : headers.keySet()) {
+            // Do not allow Cookie header to be added from headers map.
+            // Instead, instantiate class with authenticate boolean = true.
+            if (!header.equals("Cookie")) {
+                connection.setRequestProperty(header, headers.get(header));
+            }
+        }
+
+        // If authenticate field is true add Cookie header.
+        if (this.authenticate) {
+            connection.setRequestProperty("Cookie", AppCookie.getAuthCookie(this.applicationContext));
+        }
+    }
+
+    /**
      * Reads request response body into response field.
-     * @param responseStream InputStream from HttpURLConnection object..
+     * @param responseStream InputStream from HttpURLConnection object.
      * @throws IOException
      */
     private void readHttpResponseBody(InputStream responseStream) throws IOException {

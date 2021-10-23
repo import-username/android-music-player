@@ -11,6 +11,7 @@ import com.importusername.musicplayer.http.MusicPlayerRequest;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
+import com.importusername.musicplayer.util.AppCookie;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -20,12 +21,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final Intent connectionIntent = new Intent(MainActivity.this, ConnectionActivity.class);
-
-        if (AppURL.getAppUrl(this) == null) {
-            startActivity(connectionIntent);
+        if (AppCookie.getAuthCookie(this) == null) {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
         } else {
-            final MusicPlayerRequestThread musicPlayerRequestThread = new MusicPlayerRequestThread(AppURL.getAppUrl(this) + "/verify-music-player", this.musicPlayerRequestAction());
+            final MusicPlayerRequestThread musicPlayerRequestThread = new MusicPlayerRequestThread(AppConfig.getProperty("url", this) + "/authenticate", this, true, this.musicPlayerRequestAction());
 
             musicPlayerRequestThread.start();
         }
@@ -34,13 +33,15 @@ public class MainActivity extends AppCompatActivity {
     private IHttpRequestAction musicPlayerRequestAction() {
         return (status) -> {
             if (status == 200) {
+                // If /authenticate endpoint responds with status 200
                 final Intent musicPlayerIntent = new Intent(MainActivity.this, MusicPlayerActivity.class);
 
                 this.startActivity(musicPlayerIntent);
             } else {
-                final Intent connectionIntent = new Intent(MainActivity.this, ConnectionActivity.class);
+                // If /authenticate endpoint doesn't respond with status 200
+                final Intent loginActivity = new Intent(MainActivity.this, LoginActivity.class);
 
-                this.startActivity(connectionIntent);
+                this.startActivity(loginActivity);
             }
         };
     }
