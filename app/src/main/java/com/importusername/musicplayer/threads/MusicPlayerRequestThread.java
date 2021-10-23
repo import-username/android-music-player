@@ -1,6 +1,7 @@
 package com.importusername.musicplayer.threads;
 
 import android.content.Context;
+import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.MusicPlayerRequest;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 
@@ -16,22 +17,41 @@ public class MusicPlayerRequestThread extends Thread {
 
     private boolean authenticate;
 
+    private RequestMethod requestMethod;
+
     private final IHttpRequestAction requestAction;
 
     /**
      * @param url Url to send request to.
      * @param action
      */
-    public MusicPlayerRequestThread(String url, IHttpRequestAction action) {
+    public MusicPlayerRequestThread(String url, RequestMethod requestMethod, IHttpRequestAction action) {
         this.url = url;
         this.requestAction = action;
+        this.requestMethod = requestMethod;
     }
 
-    public MusicPlayerRequestThread(String url, Context applicationContext, boolean authenticate, IHttpRequestAction action) {
+    public MusicPlayerRequestThread(String url, RequestMethod requestMethod, Context applicationContext, boolean authenticate, IHttpRequestAction action) {
         this.url = url;
+        this.requestMethod = requestMethod;
         this.applicationContext = applicationContext;
         this.authenticate = authenticate;
         this.requestAction = action;
+    }
+
+    private void sendRequest(MusicPlayerRequest request) throws IOException {
+        // TODO - add corresponding request method calls
+        switch (this.requestMethod) {
+            case GET:
+                request.get();
+                break;
+            case POST:
+                break;
+            case PATCH:
+                break;
+            case DELETE:
+                break;
+        }
     }
 
     @Override
@@ -45,7 +65,7 @@ public class MusicPlayerRequestThread extends Thread {
         }
 
         try {
-            musicPlayerRequest.get();
+            this.sendRequest(musicPlayerRequest);
 
             this.requestAction.requestAction(musicPlayerRequest.getStatus());
         } catch (IOException e) {

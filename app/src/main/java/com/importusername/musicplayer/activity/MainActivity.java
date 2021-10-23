@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.importusername.musicplayer.AppURL;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.MusicPlayerRequest;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
@@ -24,7 +25,13 @@ public class MainActivity extends AppCompatActivity {
         if (AppCookie.getAuthCookie(this) == null) {
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
         } else {
-            final MusicPlayerRequestThread musicPlayerRequestThread = new MusicPlayerRequestThread(AppConfig.getProperty("url", this) + "/authenticate", this, true, this.musicPlayerRequestAction());
+            final String url = AppConfig.getProperty("url", this) + "/authenticate";
+            final MusicPlayerRequestThread musicPlayerRequestThread = new MusicPlayerRequestThread(
+                    url,
+                    RequestMethod.GET,
+                    this,
+                    true,
+                    this.musicPlayerRequestAction());
 
             musicPlayerRequestThread.start();
         }

@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import com.importusername.musicplayer.AppURL;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 
@@ -44,7 +45,8 @@ public class ConnectionActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                final MusicPlayerRequestThread connectionRequestThread = new MusicPlayerRequestThread("http://" + urlString + "/verify-music-player", this.connectionAction());
+                final MusicPlayerRequestThread connectionRequestThread = new MusicPlayerRequestThread(
+                        "http://" + urlString + "/verify-music-player", RequestMethod.GET, this.connectionAction());
 
                 connectionRequestThread.start();
             }
