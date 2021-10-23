@@ -10,4 +10,9 @@
     <string name="music_player_songs_item_text">Songs</string>
     <string name="music_player_playlists_item_text">Playlists</string>
     <string name="music_player_settings_item_text">Settings</string>
+    <string name="music_player_login_title">Login</string>
+    <string name="music_player_login_title_button">LOG IN</string>
+    <string name="music_player_signup_title_button">SIGN UP</string>
+    <string name="music_player_login_email_input">Email</string>
+    <string name="music_player_login_password_input">Password</string>
 </resources>
