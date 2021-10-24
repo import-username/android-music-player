@@ -16,4 +16,5 @@
     <string name="music_player_login_email_input">Email</string>
     <string name="music_player_login_password_input">Password</string>
     <string name="stay_logged_in_text">stay logged in?</string>
+    <string name="forgot_password_button_text">Forgot password?</string>
 </resources>

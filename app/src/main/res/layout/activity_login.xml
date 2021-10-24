@@ -141,4 +141,19 @@
             android:textColor="@color/app_secondary_color"
             android:clickable="true"
             android:focusable="true"/>
+    <TextView
+            android:id="@+id/forgot_password_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/music_player_login_button"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.07"
+            android:text="@string/forgot_password_button_text"
+            android:textColor="@color/music_player_forgot_password_color"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:clickable="true"
+            android:focusable="true"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

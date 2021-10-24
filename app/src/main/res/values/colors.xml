@@ -17,4 +17,5 @@
     <color name="music_player_nav_item_checked">#FFFFFFFF</color>
     <color name="music_player_nav_item_unchecked">#AFAFAF</color>
     <color name="music_player_login_background">#2E2F33</color>
+    <color name="music_player_forgot_password_color">#888888</color>
 </resources>
