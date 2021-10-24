@@ -1,9 +1,17 @@
 package com.importusername.musicplayer.activity;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.enums.RequestMethod;
+import com.importusername.musicplayer.interfaces.IHttpRequestAction;
+import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
+import com.importusername.musicplayer.util.AppConfig;
 
 public class LoginActivity extends AppCompatActivity {
     @Override
@@ -11,5 +19,31 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_login);
+
+        // Set login button onclick listener.
+        findViewById(R.id.music_player_login_button).setOnClickListener(this.loginButtonAction());
+    }
+
+    private View.OnClickListener loginButtonAction() {
+        return (View view) -> {
+            // Get email and password text
+            final String emailText = ((EditText) findViewById(R.id.login_email_input)).getText().toString();
+            final String passwordText = ((EditText) findViewById(R.id.login_password_input)).getText().toString();
+
+            // Send login request
+            final MusicPlayerRequestThread musicPlayerRequestThread = new MusicPlayerRequestThread(
+                    AppConfig.getProperty("url", LoginActivity.this) + "/login",
+                    RequestMethod.POST,
+                    this.loginRequestAction()
+            );
+
+            musicPlayerRequestThread.start();
+        };
+    }
+
+    private IHttpRequestAction loginRequestAction() {
+        return (int status) -> {
+            System.out.println(status);
+        };
     }
 }
