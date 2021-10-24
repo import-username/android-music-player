@@ -23,7 +23,7 @@ public class MusicPlayerRequestThread extends Thread {
 
     /**
      * @param url Url to send request to.
-     * @param action
+     * @param action Method to execute when request is finished.
      */
     public MusicPlayerRequestThread(String url, RequestMethod requestMethod, IHttpRequestAction action) {
         this.url = url;
@@ -39,6 +39,11 @@ public class MusicPlayerRequestThread extends Thread {
         this.requestAction = action;
     }
 
+    /**
+     * Calls MusicPlayerRequest method corresponding to the request method.
+     * @param request MusicPlayerRequest object.
+     * @throws IOException
+     */
     private void sendRequest(MusicPlayerRequest request) throws IOException {
         // TODO - add corresponding request method calls
         switch (this.requestMethod) {
@@ -59,6 +64,7 @@ public class MusicPlayerRequestThread extends Thread {
         final MusicPlayerRequest musicPlayerRequest;
 
         if (this.authenticate) {
+            // If authenticate field is true, instantiate MusicPlayerRequest with authenticate argument.
              musicPlayerRequest = new MusicPlayerRequest(this.url, true, this.applicationContext);
         } else {
             musicPlayerRequest = new MusicPlayerRequest(this.url);

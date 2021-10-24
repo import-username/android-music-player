@@ -15,4 +15,5 @@
     <string name="music_player_signup_title_button">SIGN UP</string>
     <string name="music_player_login_email_input">Email</string>
     <string name="music_player_login_password_input">Password</string>
+    <string name="stay_logged_in_text">stay logged in?</string>
 </resources>
