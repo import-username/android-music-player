@@ -1,11 +1,13 @@
 package com.importusername.musicplayer.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
@@ -67,7 +69,35 @@ public class LoginActivity extends AppCompatActivity {
                 if (((CheckBox) findViewById(R.id.stay_logged_in_checkbox)).isChecked()) {
                     AppCookie.setAuthCookie(headers.get("Set-Cookie").get(0), LoginActivity.this);
                 }
+
+                final Intent musicPlayerIntent = new Intent(LoginActivity.this, MusicPlayerActivity.class);
+
+                this.startActivity(musicPlayerIntent);
+            } else {
+                LoginActivity.this.displayRequestErrorMessage(response);
             }
         };
+    }
+
+    /**
+     * Displays login error message on failed login.
+     * @param errorMessage Error message to display.
+     */
+    private void displayRequestErrorMessage(String errorMessage) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final TextView errorTextView = ((TextView) findViewById(R.id.login_error_message_text));
+
+                try {
+                    errorTextView.setText(new JSONObject(errorMessage).getString("message"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                errorTextView.setVisibility(View.VISIBLE);
+            }
+        });
+
     }
 }

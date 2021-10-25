@@ -123,7 +123,11 @@ public class MusicPlayerRequest {
         this.responseHeaders = urlConnection.getHeaderFields();
 
         // Read response message
-        this.readHttpResponseBody(urlConnection.getInputStream());
+        if (urlConnection.getResponseCode() != 200) {
+            this.readHttpResponseBody(urlConnection.getErrorStream());
+        } else {
+            this.readHttpResponseBody(urlConnection.getInputStream());
+        }
 
         // Close connection
         urlConnection.disconnect();

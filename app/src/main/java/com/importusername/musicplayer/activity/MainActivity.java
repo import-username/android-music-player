@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
 
     private IHttpRequestAction musicPlayerRequestAction() {
         return (status, response, headers) -> {
-            Log.i("MainActivity", status + "");
             if (status == 200) {
                 // If /authenticate endpoint responds with status 200
                 final Intent musicPlayerIntent = new Intent(MainActivity.this, MusicPlayerActivity.class);
