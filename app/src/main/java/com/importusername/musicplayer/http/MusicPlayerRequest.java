@@ -2,17 +2,12 @@ package com.importusername.musicplayer.http;
 
 import android.content.Context;
 import android.util.Log;
-import androidx.annotation.Nullable;
-import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
-import com.importusername.musicplayer.util.AppConfig;
+import com.importusername.musicplayer.enums.RequestContentType;
 import com.importusername.musicplayer.util.AppCookie;
+import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +18,14 @@ import java.util.Map;
  */
 public class MusicPlayerRequest {
     private final String url;
-    private boolean authenticate;
-    private Context applicationContext;
+    private final boolean authenticate;
+    private final Context applicationContext;
+
+    private final Map<String, String> requestHeaders;
+
+    private Object requestBody;
+
+    private RequestContentType contentType;
 
     private int responseStatus;
 
@@ -32,50 +33,68 @@ public class MusicPlayerRequest {
 
     private Map<String, List<String>> responseHeaders;
 
-    public MusicPlayerRequest(String url) {
-        this.url = url;
-    }
-
+    /**
+     * Initializes instance fields and calls setAuthCookie method.
+     * @param url Url to send request to. Should include protocol, port (if necessary), endpoint, url param, and query params.
+     * @param authenticate Boolean value for whether cookie header should be sent with request.
+     * @param applicationContext Android app context object.
+     */
     public MusicPlayerRequest(String url, boolean authenticate, Context applicationContext) {
         this.url = url;
         this.authenticate = authenticate;
         this.applicationContext = applicationContext;
+        this.requestHeaders = new HashMap<>();
+        this.setAuthCookie();
     }
 
     /**
-     * Sends GET request to server.
-     * @param headers HashMap object representing headers to put on request.
-     * @throws IOException
+     * Sets auth cookie header in headers hashmap if authenticate is true.
      */
-    public void get(Map<String, String> headers) throws IOException {
-        try {
-            // Create URL object from url field
-            URL url = new URL(this.url);
+    private void setAuthCookie() {
+        if (this.authenticate) {
+            this.requestHeaders.put("Cookie", AppCookie.getAuthCookie(this.applicationContext));
+        }
+    }
 
-            // Open http connection, allowing input from server to client and setting method as GET
-            final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setDoInput(true);
-            urlConnection.setRequestMethod("GET");
+    /**
+     * Iteratively adds headers to requestHeaders map.
+     * @param headers Map of key value pairs representing http headers.
+     */
+    public void setHeaders(Map<String, String> headers) {
+        for (String header : headers.keySet()) {
+            // Do not allow Cookie header to be added from headers map.
+            // Instead, instantiate class with authenticate boolean = true.
+            if (!header.equals("Cookie")) {
+                this.requestHeaders.put(header, headers.get(header));
+            }
+        }
+    }
 
-            // Add headers to request
-            this.setRequestHeaders(urlConnection, headers);
+    /**
+     * Adds a single header.
+     * @param name Header name
+     * @param value Header value
+     * @return Object which method was called on for method chaining.
+     */
+    public MusicPlayerRequest setHeader(String name, String value) {
+        if (!name.equals("Cookie")) {
+            this.requestHeaders.put(name, value);
+        }
 
-            // Send request
-            urlConnection.connect();
+        return this;
+    }
 
-            // Get response status code
-            this.responseStatus = urlConnection.getResponseCode();
+    /**
+     * Sets httpBody field.
+     * @param httpBody HttpBody object.
+     */
+    public void setRequestBody(HttpBody httpBody) {
+        if (httpBody.getBody() != null && httpBody.getContentType() != null) {
+            this.contentType = httpBody.getContentType();
 
-            // Set response headers field.
-            this.responseHeaders = urlConnection.getHeaderFields();
+            this.requestHeaders.put("Content-Type", this.contentType.getContentType());
 
-            // Read response message
-            this.readHttpResponseBody(urlConnection.getInputStream());
-
-            // Close connection
-            urlConnection.disconnect();
-        } catch (MalformedURLException exc) {
-            this.responseStatus = 404;
+            this.requestBody = httpBody.getBody();
         }
     }
 
@@ -83,52 +102,92 @@ public class MusicPlayerRequest {
      * Sends GET request to server.
      * @throws IOException
      */
-    public void get() throws IOException {
-        try {
-            // Create URL object from url field
-            URL url = new URL(this.url);
+    public void getRequest() throws IOException {
+        // Create URL object from url field
+        URL url = new URL(this.url);
 
-            // Open http connection, allowing input from server to client and setting method as GET
-            final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setDoInput(true);
-            urlConnection.setRequestMethod("GET");
+        // Open http connection, allowing input from server to client and setting method as GET
+        final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setDoInput(true);
+        urlConnection.setRequestMethod("GET");
 
-            // Send request
-            urlConnection.connect();
+        this.addRequestHeaders(urlConnection);
 
-            // Get response status code
-            this.responseStatus = urlConnection.getResponseCode();
+        // Send request
+        urlConnection.connect();
 
-            // Set response headers field.
-            this.responseHeaders = urlConnection.getHeaderFields();
+        // Get response status code
+        this.responseStatus = urlConnection.getResponseCode();
 
-            // Read response message
+        // Set response headers field.
+        this.responseHeaders = urlConnection.getHeaderFields();
+
+        // Read response message
+        this.readHttpResponseBody(urlConnection.getInputStream());
+
+        // Close connection
+        urlConnection.disconnect();
+    }
+
+    /**
+     * Sends post request to server.
+     * @throws IOException
+     */
+    public void postRequest() throws IOException {
+        URL url = new URL(this.url);
+
+        final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setDoInput(true);
+        urlConnection.setDoOutput(true);
+
+        urlConnection.setRequestMethod("POST");
+
+        this.addRequestHeaders(urlConnection);
+        this.addRequestBody(urlConnection);
+
+        urlConnection.connect();
+
+        this.responseStatus = urlConnection.getResponseCode();
+        this.responseHeaders = urlConnection.getHeaderFields();
+        if (urlConnection.getResponseCode() != 200) {
+            this.readHttpResponseBody(urlConnection.getErrorStream());
+        } else {
             this.readHttpResponseBody(urlConnection.getInputStream());
-
-            // Close connection
-            urlConnection.disconnect();
-        } catch (MalformedURLException exc) {
-            this.responseStatus = 404;
         }
+        urlConnection.disconnect();
     }
 
     /**
      * Adds request property to HttpURLConnection object for every header in map object.
      * @param connection HttpURLConnection object.
-     * @param headers Map of key/values representing request headers.
      */
-    public void setRequestHeaders(HttpURLConnection connection, Map<String, String> headers) {
-        for (String header : headers.keySet()) {
-            // Do not allow Cookie header to be added from headers map.
-            // Instead, instantiate class with authenticate boolean = true.
-            if (!header.equals("Cookie")) {
-                connection.setRequestProperty(header, headers.get(header));
+    private void addRequestHeaders(HttpURLConnection connection) {
+        if (this.requestHeaders != null && this.requestHeaders.size() > 0) {
+            for (String header : this.requestHeaders.keySet()) {
+                connection.setRequestProperty(header, this.requestHeaders.get(header));
             }
         }
+    }
 
-        // If authenticate field is true add Cookie header.
-        if (this.authenticate) {
-            connection.setRequestProperty("Cookie", AppCookie.getAuthCookie(this.applicationContext));
+    /**
+     * Writes http body to HttpURLConnection object's outputstream.
+     * @param connection HttpURLConnection object.
+     * @throws IOException
+     */
+    private void addRequestBody(HttpURLConnection connection) throws IOException {
+        if (this.requestBody != null) {
+            OutputStream outputStream = new BufferedOutputStream(connection.getOutputStream());
+
+            switch (this.contentType.name()) {
+                case "JSON":
+                    outputStream.write(((JSONObject) this.requestBody).toString().getBytes());
+                    outputStream.flush();
+                    outputStream.close();
+                    break;
+                case "TEXT":
+                    outputStream.write(this.requestBody.toString().getBytes());
+                    break;
+            }
         }
     }
 
