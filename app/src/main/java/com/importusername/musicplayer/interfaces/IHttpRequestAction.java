@@ -7,5 +7,5 @@ public interface IHttpRequestAction {
     /**
      * @param status Response status code from http request.
      */
-    void requestAction(int status);
+    void requestAction(int status, String response);
 }

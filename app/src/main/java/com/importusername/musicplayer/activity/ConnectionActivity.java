@@ -74,7 +74,7 @@ public class ConnectionActivity extends AppCompatActivity {
     private IHttpRequestAction connectionAction() {
         return new IHttpRequestAction() {
             @Override
-            public void requestAction(int status) {
+            public void requestAction(int status, String response) {
                 if (status == 200) {
                     final EditText urlInput = findViewById(R.id.connection_menu_input);
                     String urlString = "";

@@ -1,6 +1,7 @@
 package com.importusername.musicplayer.activity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -56,8 +57,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private IHttpRequestAction loginRequestAction() {
-        return (int status) -> {
-            System.out.println(status);
+        return (int status, String response) -> {
+            Log.i("LoginActivity", status + "");
+            Log.i("LoginActivity", response);
         };
     }
 }
