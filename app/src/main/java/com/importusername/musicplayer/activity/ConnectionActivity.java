@@ -45,10 +45,10 @@ public class ConnectionActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                final MusicPlayerRequestThread connectionRequestThread = new MusicPlayerRequestThread(
-                        "http://" + urlString + "/verify-music-player", RequestMethod.GET, this.connectionAction());
-
-                connectionRequestThread.start();
+//                final MusicPlayerRequestThread connectionRequestThread = new MusicPlayerRequestThread(
+//                        "http://" + urlString + "/verify-music-player", RequestMethod.GET, this.connectionAction());
+//
+//                connectionRequestThread.start();
             }
         };
     }
