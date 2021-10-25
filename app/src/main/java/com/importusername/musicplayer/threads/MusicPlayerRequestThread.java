@@ -2,10 +2,13 @@ package com.importusername.musicplayer.threads;
 
 import android.content.Context;
 import com.importusername.musicplayer.enums.RequestMethod;
+import com.importusername.musicplayer.http.HttpBody;
 import com.importusername.musicplayer.http.MusicPlayerRequest;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Thread for sending http request to music player server.
@@ -21,16 +24,17 @@ public class MusicPlayerRequestThread extends Thread {
 
     private final IHttpRequestAction requestAction;
 
+    private HttpBody body;
+
+    private Map<String, String> headers;
+
     /**
      * @param url Url to send request to.
+     * @param requestMethod Request method enum
+     * @param applicationContext Application context object.
+     * @param authenticate Boolean value for if request should be authenticated.
      * @param action Method to execute when request is finished.
      */
-    public MusicPlayerRequestThread(String url, RequestMethod requestMethod, IHttpRequestAction action) {
-        this.url = url;
-        this.requestAction = action;
-        this.requestMethod = requestMethod;
-    }
-
     public MusicPlayerRequestThread(String url, RequestMethod requestMethod, Context applicationContext, boolean authenticate, IHttpRequestAction action) {
         this.url = url;
         this.requestMethod = requestMethod;
@@ -48,9 +52,10 @@ public class MusicPlayerRequestThread extends Thread {
         // TODO - add corresponding request method calls
         switch (this.requestMethod) {
             case GET:
-                request.get();
+                request.getRequest();
                 break;
             case POST:
+                request.postRequest();
                 break;
             case PATCH:
                 break;
@@ -59,15 +64,24 @@ public class MusicPlayerRequestThread extends Thread {
         }
     }
 
+    public void setBody(HttpBody body) {
+        this.body = body;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
+
     @Override
     public void run() {
-        final MusicPlayerRequest musicPlayerRequest;
+        final MusicPlayerRequest musicPlayerRequest = new MusicPlayerRequest(this.url, this.authenticate, this.applicationContext);
 
-        if (this.authenticate) {
-            // If authenticate field is true, instantiate MusicPlayerRequest with authenticate argument.
-             musicPlayerRequest = new MusicPlayerRequest(this.url, true, this.applicationContext);
-        } else {
-            musicPlayerRequest = new MusicPlayerRequest(this.url);
+        if (this.body != null) {
+            musicPlayerRequest.setRequestBody(this.body);
+        }
+
+        if (this.headers != null) {
+            musicPlayerRequest.setHeaders(this.headers);
         }
 
         try {
