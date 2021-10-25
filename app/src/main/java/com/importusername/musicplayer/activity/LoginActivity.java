@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,8 +15,12 @@ import com.importusername.musicplayer.http.HttpBody;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
+import com.importusername.musicplayer.util.AppCookie;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     @Override
@@ -57,9 +62,12 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private IHttpRequestAction loginRequestAction() {
-        return (int status, String response) -> {
-            Log.i("LoginActivity", status + "");
-            Log.i("LoginActivity", response);
+        return (int status, String response, Map<String, List<String>> headers) -> {
+            if (status == 200) {
+                if (((CheckBox) findViewById(R.id.stay_logged_in_checkbox)).isChecked()) {
+                    AppCookie.setAuthCookie(headers.get("Set-Cookie").get(0), LoginActivity.this);
+                }
+            }
         };
     }
 }

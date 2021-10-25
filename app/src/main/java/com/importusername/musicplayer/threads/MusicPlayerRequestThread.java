@@ -87,7 +87,7 @@ public class MusicPlayerRequestThread extends Thread {
         try {
             this.sendRequest(musicPlayerRequest);
 
-            this.requestAction.requestAction(musicPlayerRequest.getStatus(), musicPlayerRequest.getResponse());
+            this.requestAction.requestAction(musicPlayerRequest.getStatus(), musicPlayerRequest.getResponse(), musicPlayerRequest.getResponseHeaders());
         } catch (IOException e) {
             e.printStackTrace();
         }

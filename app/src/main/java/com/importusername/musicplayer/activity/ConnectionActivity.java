@@ -14,6 +14,8 @@ import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Activity for connecting to music player server.
@@ -74,7 +76,7 @@ public class ConnectionActivity extends AppCompatActivity {
     private IHttpRequestAction connectionAction() {
         return new IHttpRequestAction() {
             @Override
-            public void requestAction(int status, String response) {
+            public void requestAction(int status, String response, Map<String, List<String>> headers) {
                 if (status == 200) {
                     final EditText urlInput = findViewById(R.id.connection_menu_input);
                     String urlString = "";
