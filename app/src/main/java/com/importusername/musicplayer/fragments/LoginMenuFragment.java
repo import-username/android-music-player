@@ -1,45 +1,54 @@
-package com.importusername.musicplayer.activity;
+package com.importusername.musicplayer.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
+import androidx.fragment.app.Fragment;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.activity.MusicPlayerActivity;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.HttpBody;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginMenuFragment extends Fragment {
+    public LoginMenuFragment() {
+        super(R.layout.login_menu_fragment);
+    }
+
+    @Nullable
+    @org.jetbrains.annotations.Nullable
     @Override
-    protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(@NonNull @NotNull LayoutInflater inflater,
+                             @Nullable @org.jetbrains.annotations.Nullable ViewGroup container,
+                             @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.login_menu_fragment, container, false);
 
-        setContentView(R.layout.activity_login);
+        view.findViewById(R.id.music_player_login_button).setOnClickListener(this.loginButtonAction());
 
-        // Set login button onclick listener.
-        findViewById(R.id.music_player_login_button).setOnClickListener(this.loginButtonAction());
+        return view;
     }
 
     private View.OnClickListener loginButtonAction() {
         return (View view) -> {
             // Get email and password text
-            final String emailText = ((EditText) findViewById(R.id.login_email_input)).getText().toString();
-            final String passwordText = ((EditText) findViewById(R.id.login_password_input)).getText().toString();
+            final String emailText = ((EditText) getView().findViewById(R.id.login_email_input)).getText().toString();
+            final String passwordText = ((EditText) getView().findViewById(R.id.login_password_input)).getText().toString();
 
             final HttpBody body = new HttpBody();
 
@@ -51,9 +60,9 @@ public class LoginActivity extends AppCompatActivity {
 
             // Send login request
             final MusicPlayerRequestThread musicPlayerRequestThread = new MusicPlayerRequestThread(
-                    AppConfig.getProperty("url", LoginActivity.this) + "/login",
+                    AppConfig.getProperty("url", LoginMenuFragment.this.getContext()) + "/login",
                     RequestMethod.POST,
-                    LoginActivity.this,
+                    LoginMenuFragment.this.getContext(),
                     false,
                     this.loginRequestAction()
             );
@@ -66,15 +75,15 @@ public class LoginActivity extends AppCompatActivity {
     private IHttpRequestAction loginRequestAction() {
         return (int status, String response, Map<String, List<String>> headers) -> {
             if (status == 200) {
-                if (((CheckBox) findViewById(R.id.stay_logged_in_checkbox)).isChecked()) {
-                    AppCookie.setAuthCookie(headers.get("Set-Cookie").get(0), LoginActivity.this);
+                if (((CheckBox) LoginMenuFragment.this.getView().findViewById(R.id.stay_logged_in_checkbox)).isChecked()) {
+                    AppCookie.setAuthCookie(headers.get("Set-Cookie").get(0), LoginMenuFragment.this.getContext());
                 }
 
-                final Intent musicPlayerIntent = new Intent(LoginActivity.this, MusicPlayerActivity.class);
+                final Intent musicPlayerIntent = new Intent(LoginMenuFragment.this.getContext(), MusicPlayerActivity.class);
 
                 this.startActivity(musicPlayerIntent);
             } else {
-                LoginActivity.this.displayRequestErrorMessage(response);
+                LoginMenuFragment.this.displayRequestErrorMessage(response);
             }
         };
     }
@@ -84,10 +93,10 @@ public class LoginActivity extends AppCompatActivity {
      * @param errorMessage Error message to display.
      */
     private void displayRequestErrorMessage(String errorMessage) {
-        runOnUiThread(new Runnable() {
+        LoginMenuFragment.this.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                final TextView errorTextView = ((TextView) findViewById(R.id.login_error_message_text));
+                final TextView errorTextView = ((TextView) LoginMenuFragment.this.getView().findViewById(R.id.login_error_message_text));
 
                 try {
                     errorTextView.setText(new JSONObject(errorMessage).getString("message"));
@@ -98,6 +107,5 @@ public class LoginActivity extends AppCompatActivity {
                 errorTextView.setVisibility(View.VISIBLE);
             }
         });
-
     }
 }
