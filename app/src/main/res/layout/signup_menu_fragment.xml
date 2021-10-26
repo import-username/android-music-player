@@ -38,14 +38,15 @@
                 app:layout_constraintTop_toBottomOf="@id/signup_email_input"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/signup_retype_password_input"
                 android:background="@drawable/auth_form_input"
                 android:hint="@string/music_player_login_password_input"
                 android:paddingHorizontal="20dp"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:inputType="textPassword"
-                app:layout_constraintVertical_bias="0.3"/>
+                app:layout_constraintVertical_bias="0.4"
+                android:layout_marginTop="30dp"/>
         <EditText
                 android:id="@+id/signup_retype_password_input"
                 android:layout_width="0dp"
@@ -62,8 +63,8 @@
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:inputType="textPassword"
-                app:layout_constraintVertical_bias="0.4"
-                android:layout_marginTop="40dp"/>
+                android:layout_marginTop="30dp"
+                app:layout_constraintVertical_bias="0.4"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/music_player_signup_button"
@@ -82,9 +83,10 @@
             android:textSize="20sp"
             android:textColor="@color/app_secondary_color"
             android:clickable="true"
-            android:focusable="true"/>
+            android:focusable="true"
+            android:layout_marginTop="30dp"/>
     <TextView
-            android:id="@+id/login_error_message_text"
+            android:id="@+id/signup_error_message_text"
             app:layout_constraintWidth_percent="0.55"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

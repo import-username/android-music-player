@@ -1,5 +1,7 @@
 package com.importusername.musicplayer.interfaces;
 
+import org.json.JSONException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -10,5 +12,5 @@ public interface IHttpRequestAction {
     /**
      * @param status Response status code from http request.
      */
-    void requestAction(int status, String response, Map<String, List<String>> headers);
+    void requestAction(int status, String response, Map<String, List<String>> headers) throws JSONException;
 }
