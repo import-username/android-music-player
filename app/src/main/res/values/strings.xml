@@ -19,4 +19,6 @@
     <string name="stay_logged_in_text">stay logged in?</string>
     <string name="forgot_password_button_text">Forgot password?</string>
     <string name="music_player_signup_retype_password_input">Retype password</string>
+    <string name="music_player_songs_menu_title">Songs</string>
+    <string name="music_player_songs_menu_create_song">ADD</string>
 </resources>

@@ -3,12 +3,34 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:background="@color/songs_menu_background_primary">
     <TextView
+            android:id="@+id/music_player_songs_menu_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:text="SONGS MENU" />
+            app:layout_constraintVertical_bias="0.05"
+            android:text="@string/music_player_songs_menu_title"
+            android:textColor="@color/white"
+            android:textSize="44sp"/>
+    <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/songs_menu_add_song_button"
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            app:layout_constraintTop_toBottomOf="@id/music_player_songs_menu_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.03"
+            app:layout_constraintWidth_percent="0.45"
+            android:background="@drawable/create_item_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:text="@string/music_player_songs_menu_create_song"
+            android:textSize="20sp"
+            android:textColor="@color/app_secondary_color"
+            android:textStyle="bold"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
