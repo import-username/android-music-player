@@ -57,4 +57,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             return true;
         };
     }
+
+    // TODO - override onbackpressed method to disable back button
 }

@@ -1,11 +1,13 @@
 package com.importusername.musicplayer.activity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.fragments.LoginMenuFragment;
@@ -17,6 +19,11 @@ public class AuthFormActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_auth_form);
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.auth_form_fragment_container, LoginMenuFragment.class, null)
+                .commit();
 
         // Set login/signup button onclick listener.
         findViewById(R.id.music_player_signup_title_button).setOnClickListener(this.swapAuthFragmentListener());
@@ -44,5 +51,14 @@ public class AuthFormActivity extends AppCompatActivity {
                     break;
             }
         };
+    }
+
+    @Override
+    public void onBackPressed() {
+        Fragment fragmentManager = getSupportFragmentManager().findFragmentById(R.id.auth_form_fragment_container);
+
+        if (!(fragmentManager instanceof LoginMenuFragment || fragmentManager instanceof SignupMenuFragment)) {
+            super.onBackPressed();
+        }
     }
 }
