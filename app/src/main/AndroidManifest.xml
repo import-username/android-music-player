@@ -19,6 +19,6 @@
         </activity>
         <activity android:name=".activity.ConnectionActivity" />
         <activity android:name=".activity.MusicPlayerActivity" />
-        <activity android:name=".activity.LoginActivity" />
+        <activity android:name=".activity.AuthFormActivity" />
     </application>
 </manifest>

@@ -5,6 +5,7 @@ import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.HttpBody;
 import com.importusername.musicplayer.http.MusicPlayerRequest;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -88,7 +89,7 @@ public class MusicPlayerRequestThread extends Thread {
             this.sendRequest(musicPlayerRequest);
 
             this.requestAction.requestAction(musicPlayerRequest.getStatus(), musicPlayerRequest.getResponse(), musicPlayerRequest.getResponseHeaders());
-        } catch (IOException e) {
+        } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
     }
