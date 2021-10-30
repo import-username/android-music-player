@@ -1,6 +1,7 @@
 package com.importusername.musicplayer.fragments;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,10 +14,16 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.http.MultipartRequestEntity;
+import com.importusername.musicplayer.http.MusicPlayerRequest;
+import com.importusername.musicplayer.threads.MultipartRequestThread;
+import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,13 +34,15 @@ public class SongsMenuFragment extends Fragment {
                 public void onActivityResult(ActivityResult result) {
                     final Intent dataIntent = result.getData();
 
-                    final Uri fileUri = dataIntent.getData();
+                    if (dataIntent != null) {
+                        final Uri fileUri = dataIntent.getData();
 
-                    if (fileUri != null) {
-                        try {
-                            SongsMenuFragment.this.uploadFile(fileUri);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        if (fileUri != null) {
+                            try {
+                                SongsMenuFragment.this.uploadFile(fileUri);
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -67,9 +76,19 @@ public class SongsMenuFragment extends Fragment {
         directoryTreeActivityResult.launch(fileChooserIntent);
     }
 
-    private void uploadFile(Uri fileUri) throws IOException {
+    private void uploadFile(Uri fileUri) throws FileNotFoundException {
         InputStream inputStream = SongsMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
 
+        final String filename = DocumentFile.fromSingleUri(SongsMenuFragment.this.getContext(), fileUri).getName();
 
+        MultipartRequestThread multipartRequestThread = new MultipartRequestThread(
+                AppConfig.getProperty("url", getContext()) + "/song/upload-song",
+                true,
+                getContext(),
+                inputStream,
+                "songFile",
+                filename);
+        Log.d("SongsMenuFragment", filename);
+        multipartRequestThread.start();
     }
 }
