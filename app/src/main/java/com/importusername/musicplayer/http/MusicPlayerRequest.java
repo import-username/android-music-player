@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +159,64 @@ public class MusicPlayerRequest {
         } else {
             this.readHttpResponseBody(urlConnection.getInputStream());
         }
+        urlConnection.disconnect();
+    }
+
+    /**
+     * Sends a post request with content-type multipart.
+     * @param inputStream Stream of bytes to send to server as part data.
+     * @param fieldname Multipart field name
+     * @param filename Multipart file name
+     * @throws IOException
+     */
+    public void multipartRequest(InputStream inputStream, String fieldname, String filename) throws IOException {
+        final String boundary = "920574230592345364354536435r";
+        final String newLine = "\r\n";
+        final StringBuilder multipartString = new StringBuilder();
+        URL url = new URL(this.url);
+
+        final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setDoInput(true);
+        urlConnection.setDoOutput(true);
+
+        urlConnection.setRequestMethod("POST");
+        urlConnection.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
+        urlConnection.setRequestProperty("Connection", "Keep-Alive");
+
+        urlConnection.setRequestProperty("ENCTYPE", "multipart/form-data");
+
+        if (this.authenticate) {
+            urlConnection.setRequestProperty("Cookie", AppCookie.getAuthCookie(this.applicationContext));
+        }
+
+        multipartString.append("--" + boundary).append(newLine);
+        multipartString.append(String.format("Content-Disposition: form-data;name=\"%s\";filename=\"%s\"", fieldname, filename)).append(newLine);
+        multipartString.append(String.format("content-type: %s\r\n\r\n", URLConnection.guessContentTypeFromName(filename)));
+        Log.d("MusicPlayerRequest", multipartString.toString());
+
+        urlConnection.connect();
+
+        final DataOutputStream outputStream = new DataOutputStream(urlConnection.getOutputStream());
+
+        outputStream.writeBytes(multipartString.toString());
+        outputStream.flush();
+
+        int result = inputStream.read();
+
+        while (result != -1) {
+            outputStream.write(result);
+            result = inputStream.read();
+        }
+        outputStream.writeBytes(newLine);
+        outputStream.writeBytes(String.format("--%s--\r\n", boundary));
+        outputStream.writeBytes(newLine);
+
+        inputStream.close();
+        outputStream.flush();
+        outputStream.close();
+
+        this.responseStatus = urlConnection.getResponseCode();
+
         urlConnection.disconnect();
     }
 
