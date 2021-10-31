@@ -15,19 +15,13 @@ public class MultipartRequestThread extends Thread {
 
     private final Context context;
 
-    private final InputStream contentStream;
+    private final MultipartRequestEntity multipartRequestEntity;
 
-    private final String fieldname;
-
-    private final String filename;
-
-    public MultipartRequestThread(String url, boolean authenticate, Context context, InputStream contentStream, String fieldname, String filename) {
+    public MultipartRequestThread(String url, boolean authenticate, Context context, MultipartRequestEntity multipartRequestEntity) {
         this.url = url;
         this.authenticate = authenticate;
         this.context = context;
-        this.contentStream = contentStream;
-        this.fieldname = fieldname;
-        this.filename = filename;
+        this.multipartRequestEntity = multipartRequestEntity;
     }
 
     @Override
@@ -35,7 +29,7 @@ public class MultipartRequestThread extends Thread {
         final MusicPlayerRequest musicPlayerRequest = new MusicPlayerRequest(this.url, this.authenticate, this.context);
 
         try {
-            musicPlayerRequest.multipartRequest(this.contentStream, this.fieldname, this.filename);
+            musicPlayerRequest.multipartRequest(this.multipartRequestEntity);
         } catch (IOException e) {
             e.printStackTrace();
         }
