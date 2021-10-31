@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 
 public class SongsMenuFragment extends Fragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
@@ -40,7 +41,7 @@ public class SongsMenuFragment extends Fragment {
                         if (fileUri != null) {
                             try {
                                 SongsMenuFragment.this.uploadFile(fileUri);
-                            } catch (FileNotFoundException e) {
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -76,19 +77,21 @@ public class SongsMenuFragment extends Fragment {
         directoryTreeActivityResult.launch(fileChooserIntent);
     }
 
-    private void uploadFile(Uri fileUri) throws FileNotFoundException {
+    private void uploadFile(Uri fileUri) throws Exception {
         InputStream inputStream = SongsMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
 
         final String filename = DocumentFile.fromSingleUri(SongsMenuFragment.this.getContext(), fileUri).getName();
+
+        final MultipartRequestEntity multipartRequestEntity = new MultipartRequestEntity();
+        multipartRequestEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
 
         MultipartRequestThread multipartRequestThread = new MultipartRequestThread(
                 AppConfig.getProperty("url", getContext()) + "/song/upload-song",
                 true,
                 getContext(),
-                inputStream,
-                "songFile",
-                filename);
-        Log.d("SongsMenuFragment", filename);
+                multipartRequestEntity
+        );
+
         multipartRequestThread.start();
     }
 }
