@@ -164,15 +164,11 @@ public class MusicPlayerRequest {
 
     /**
      * Sends a post request with content-type multipart.
-     * @param inputStream Stream of bytes to send to server as part data.
-     * @param fieldname Multipart field name
-     * @param filename Multipart file name
+     * @param multipartRequestEntity Multipart request entity object to read data from.
      * @throws IOException
      */
-    public void multipartRequest(InputStream inputStream, String fieldname, String filename) throws IOException {
+    public void multipartRequest(MultipartRequestEntity multipartRequestEntity) throws IOException {
         final String boundary = "920574230592345364354536435r";
-        final String newLine = "\r\n";
-        final StringBuilder multipartString = new StringBuilder();
         URL url = new URL(this.url);
 
         final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -189,31 +185,11 @@ public class MusicPlayerRequest {
             urlConnection.setRequestProperty("Cookie", AppCookie.getAuthCookie(this.applicationContext));
         }
 
-        multipartString.append("--" + boundary).append(newLine);
-        multipartString.append(String.format("Content-Disposition: form-data;name=\"%s\";filename=\"%s\"", fieldname, filename)).append(newLine);
-        multipartString.append(String.format("content-type: %s\r\n\r\n", URLConnection.guessContentTypeFromName(filename)));
-        Log.d("MusicPlayerRequest", multipartString.toString());
-
         urlConnection.connect();
 
         final DataOutputStream outputStream = new DataOutputStream(urlConnection.getOutputStream());
 
-        outputStream.writeBytes(multipartString.toString());
-        outputStream.flush();
-
-        int result = inputStream.read();
-
-        while (result != -1) {
-            outputStream.write(result);
-            result = inputStream.read();
-        }
-        outputStream.writeBytes(newLine);
-        outputStream.writeBytes(String.format("--%s--\r\n", boundary));
-        outputStream.writeBytes(newLine);
-
-        inputStream.close();
-        outputStream.flush();
-        outputStream.close();
+        multipartRequestEntity.writeMultipartData(outputStream, true);
 
         this.responseStatus = urlConnection.getResponseCode();
 
