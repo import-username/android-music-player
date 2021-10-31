@@ -168,15 +168,14 @@ public class MusicPlayerRequest {
      * @throws IOException
      */
     public void multipartRequest(MultipartRequestEntity multipartRequestEntity) throws IOException {
-        final String boundary = "920574230592345364354536435r";
-        URL url = new URL(this.url);
+        final URL url = new URL(this.url);
 
         final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setDoInput(true);
         urlConnection.setDoOutput(true);
 
         urlConnection.setRequestMethod("POST");
-        urlConnection.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", boundary));
+        urlConnection.setRequestProperty("Content-Type", String.format("multipart/form-data; boundary=%s", multipartRequestEntity.getBoundary()));
         urlConnection.setRequestProperty("Connection", "Keep-Alive");
 
         urlConnection.setRequestProperty("ENCTYPE", "multipart/form-data");

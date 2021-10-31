@@ -9,6 +9,8 @@ import java.util.ArrayList;
  * Class for structuring an http multipart request.
  */
 public class MultipartRequestEntity {
+    private final String boundary = "----" + ((int) System.currentTimeMillis()) + "----";
+
     private final ArrayList<MultipartRequestPart> multipartData = new ArrayList<>();
 
     /**
@@ -41,12 +43,11 @@ public class MultipartRequestEntity {
      * @param outputStream Outputstream object
      */
     public void writeMultipartData(DataOutputStream outputStream, boolean closeWhenDone) throws IOException {
-        final String boundary = "920574230592345364354536435r";
         final String newLine = "\r\n";
 
         for (MultipartRequestPart part : this.multipartData) {
             // Write part data to outputstream
-            outputStream.writeBytes("--" + boundary);
+            outputStream.writeBytes("--" + this.boundary);
             outputStream.writeBytes(part.getContentDisposition());
             outputStream.writeBytes(part.getContentTypeString());
             outputStream.flush();
@@ -54,13 +55,17 @@ public class MultipartRequestEntity {
             this.writeToOutput(part.getPartDataStream(), outputStream);
         }
 
-        outputStream.writeBytes(String.format("--%s--\r\n", boundary));
+        outputStream.writeBytes(String.format("--%s--\r\n", this.boundary));
         outputStream.writeBytes(newLine);
 
         if (closeWhenDone) {
             outputStream.flush();
             outputStream.close();
         }
+    }
+
+    public String getBoundary() {
+        return this.boundary;
     }
 
     /**
