@@ -21,4 +21,5 @@
     <string name="music_player_signup_retype_password_input">Retype password</string>
     <string name="music_player_songs_menu_title">Songs</string>
     <string name="music_player_songs_menu_create_song">ADD</string>
+    <string name="songs_menu_search_bar_hint">Search songs...</string>
 </resources>

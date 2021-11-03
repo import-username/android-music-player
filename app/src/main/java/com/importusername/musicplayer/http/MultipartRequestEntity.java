@@ -21,9 +21,11 @@ public class MultipartRequestEntity {
      * @param filename Part file name (include file extension)
      * @throws Exception
      */
-    public void appendData(String fieldname, InputStream value, String contentType, @Nullable String filename) throws Exception {
-        if (isValidArguments(fieldname, value, contentType)) {
-            final MultipartRequestPart part = new MultipartRequestPart(fieldname, contentType, value, filename, true);
+    public void appendData(String fieldname, InputStream value, String contentType, String filename) throws Exception {
+        final String multipartContentType = contentType == null ? "text/plain" : contentType;
+
+        if (isValidArguments(fieldname, value, multipartContentType)) {
+            final MultipartRequestPart part = new MultipartRequestPart(fieldname, multipartContentType, value, filename, true);
 
             this.multipartData.add(part);
         } else {
