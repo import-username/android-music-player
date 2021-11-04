@@ -18,7 +18,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.ConnectionActivity" />
-        <activity android:name=".activity.MusicPlayerActivity" />
+        <activity android:name=".activity.MusicPlayerActivity"
+                  android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".activity.AuthFormActivity" />
     </application>
 </manifest>
