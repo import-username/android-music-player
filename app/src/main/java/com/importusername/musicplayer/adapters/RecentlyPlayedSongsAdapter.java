@@ -1,4 +1,4 @@
-package com.importusername.musicplayer;
+package com.importusername.musicplayer.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,10 +7,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
+import com.importusername.musicplayer.R;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 public class RecentlyPlayedSongsAdapter extends RecyclerView.Adapter<RecentlyPlayedSongsAdapter.ViewHolder> {

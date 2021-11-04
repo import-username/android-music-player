@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.importusername.musicplayer.R;
-import com.importusername.musicplayer.RecentlyPlayedSongsAdapter;
+import com.importusername.musicplayer.adapters.RecentlyPlayedSongsAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
