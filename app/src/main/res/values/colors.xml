@@ -20,4 +20,6 @@
     <color name="music_player_forgot_password_color">#888888</color>
     <color name="songs_menu_background_primary">#222222</color>
     <color name="songs_menu_foreground_primary">#222222</color>
+    <color name="songs_menu_song_default_icon_background">#3E3E40</color>
+    <color name="songs_menu_song_default_icon">#787878</color>
 </resources>

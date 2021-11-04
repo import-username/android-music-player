@@ -16,7 +16,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.adapters.SongsMenuListAdapter;
 import com.importusername.musicplayer.http.MultipartRequestEntity;
 import com.importusername.musicplayer.http.MusicPlayerRequest;
 import com.importusername.musicplayer.threads.MultipartRequestThread;
@@ -27,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.util.ArrayList;
 
 public class SongsMenuFragment extends Fragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
@@ -59,7 +63,12 @@ public class SongsMenuFragment extends Fragment {
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable @org.jetbrains.annotations.Nullable ViewGroup container, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.music_player_songs_menu_fragment, container, false);
 
-        view.findViewById(R.id.songs_menu_add_song_button).setOnClickListener(this.addSongClickListener());
+        final ArrayList<String> songs = new ArrayList<>();
+
+        RecyclerView recyclerView = view.findViewById(R.id.songs_menu_recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        SongsMenuListAdapter songsMenuListAdapter = new SongsMenuListAdapter(songs, this.addSongClickListener());
+        recyclerView.setAdapter(songsMenuListAdapter);
 
         return view;
     }
