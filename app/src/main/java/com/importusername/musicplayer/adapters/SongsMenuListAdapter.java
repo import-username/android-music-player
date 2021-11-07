@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 
 public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private ArrayList<String> songsMenuArray;
+    private ArrayList<String> songsMenuArray = new ArrayList<>();
 
     private final int VIEW_HEADER = 0;
     private final int VIEW_MUSIC_ITEM = 1;
@@ -25,7 +25,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
      * @param songsMenuArray Array containing list of user songs.
      */
     public SongsMenuListAdapter(ArrayList<String> songsMenuArray, View.OnClickListener addButtonListener) {
-        this.songsMenuArray = songsMenuArray;
+        this.songsMenuArray.add(null);
+        this.songsMenuArray.addAll(songsMenuArray);
         this.addButtonListener = addButtonListener;
     }
 
@@ -36,16 +37,21 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         View view;
         RecyclerView.ViewHolder viewHolder;
 
-        if (this.getItemViewType(viewType) == VIEW_HEADER) {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.songs_menu_header_container, parent, false);
+        switch (this.getItemViewType(viewType)) {
+            case VIEW_HEADER:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.songs_menu_header_container, parent, false);
 
-            viewHolder = new SongsMenuListAdapter.ViewHolderHeader(view, this.addButtonListener);
-        } else {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.songs_menu_music_item, parent, false);
+                viewHolder = new ViewHolderHeader(view, this.addButtonListener);
+                break;
+            case VIEW_MUSIC_ITEM:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.songs_menu_music_item, parent, false);
 
-            viewHolder = new SongsMenuListAdapter.ViewHolder(view);
+                viewHolder = new ViewHolder(view);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected view type " + this.getItemViewType(viewType));
         }
 
         return viewHolder;
