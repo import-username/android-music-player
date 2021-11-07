@@ -10,7 +10,6 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.fragments.*;
 
-// TODO - disable bottom nav view moving up when keyboard is displayed
 public class MusicPlayerActivity extends AppCompatActivity {
     private final FragmentManager fragmentManager = this.getSupportFragmentManager();
 

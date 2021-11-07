@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:background="@color/songs_menu_background_primary">
+    <ImageView
+            android:id="@+id/add_song_menu_icon"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:tint="@color/app_secondary_color"
+            android:src="@drawable/outline_music_note_24"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.40"/>
+    <TextView
+            android:id="@+id/add_song_menu_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/add_song_menu_icon"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0"
+            android:text="@string/add_song_menu_text"
+            android:textColor="@color/white"
+            android:textSize="18sp"/>
+    <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/add_song_menu_button"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            app:layout_constraintWidth_percent="0.6"
+            app:layout_constraintTop_toBottomOf="@id/add_song_menu_text"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.1"
+            android:background="@drawable/create_item_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:text="@string/add_song_menu_button_text"
+            android:textColor="@color/app_secondary_color"
+            android:textSize="18sp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
