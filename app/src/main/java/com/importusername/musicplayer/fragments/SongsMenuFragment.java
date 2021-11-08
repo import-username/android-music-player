@@ -1,10 +1,8 @@
 package com.importusername.musicplayer.fragments;
 
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,23 +14,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.SongsMenuListAdapter;
 import com.importusername.musicplayer.http.MultipartRequestEntity;
-import com.importusername.musicplayer.http.MusicPlayerRequest;
+import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.threads.MultipartRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
-public class SongsMenuFragment extends Fragment {
+public class SongsMenuFragment extends Fragment implements IBackPressFragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -75,7 +73,24 @@ public class SongsMenuFragment extends Fragment {
 
     private View.OnClickListener addSongClickListener() {
         return (View view) -> {
-            SongsMenuFragment.this.displayDirectoryTree();
+            final FragmentManager fragmentManager = getChildFragmentManager();
+            final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+            fragmentTransaction.setCustomAnimations(
+                    R.anim.slide_in,
+                    R.anim.slide_out,
+                    R.anim.slide_in,
+                    R.anim.slide_out
+            );
+
+            fragmentTransaction
+                    .replace(R.id.songs_menu_fragment_container, CreateSongMenuFragment.class, null)
+                    .setReorderingAllowed(true)
+                    .addToBackStack("SongsMenuFragment")
+                    .commit();
+
+
+//            SongsMenuFragment.this.displayDirectoryTree();
         };
     }
 
@@ -102,5 +117,10 @@ public class SongsMenuFragment extends Fragment {
         );
 
         multipartRequestThread.start();
+    }
+
+    @Override
+    public boolean shouldAllowBackPress() {
+        return getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof CreateSongMenuFragment;
     }
 }

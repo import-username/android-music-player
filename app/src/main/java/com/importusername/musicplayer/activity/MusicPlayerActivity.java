@@ -9,10 +9,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.fragments.*;
+import com.importusername.musicplayer.interfaces.IBackPressFragment;
 
 public class MusicPlayerActivity extends AppCompatActivity {
-    private final FragmentManager fragmentManager = this.getSupportFragmentManager();
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,29 +24,35 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     private NavigationBarView.OnItemSelectedListener musicPlayerNavigationListener() {
         return (item) -> {
+            final FragmentManager fragmentManager = MusicPlayerActivity.this.getSupportFragmentManager();
+
             switch(item.getTitle().toString()) {
                 case "Home":
                     fragmentManager.beginTransaction()
                             .replace(R.id.music_player_fragment_view, HomeMenuFragment.class, null)
                             .setReorderingAllowed(true)
+                            .addToBackStack("HomeFragment")
                             .commit();
                     break;
                 case "Songs":
                     fragmentManager.beginTransaction()
                             .replace(R.id.music_player_fragment_view, SongsMenuFragment.class, null)
                             .setReorderingAllowed(true)
+                            .addToBackStack("SongsFragment")
                             .commit();
                     break;
                 case "Playlists":
                     fragmentManager.beginTransaction()
                             .replace(R.id.music_player_fragment_view, PlaylistsMenuFragment.class, null)
                             .setReorderingAllowed(true)
+                            .addToBackStack("PlaylistsFragment")
                             .commit();
                     break;
                 case "Settings":
                     fragmentManager.beginTransaction()
                             .replace(R.id.music_player_fragment_view, SettingsMenuFragment.class, null)
                             .setReorderingAllowed(true)
+                            .addToBackStack("SettingsFragment")
                             .commit();
                     break;
             }
@@ -57,5 +62,15 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() {}
+    public void onBackPressed() {
+        final Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.music_player_fragment_view);
+
+        if (fragment instanceof IBackPressFragment && ((IBackPressFragment) fragment).shouldAllowBackPress()) {
+            if (fragment.getChildFragmentManager().getBackStackEntryCount() > 0) {
+                fragment.getChildFragmentManager().popBackStack();
+            } else {
+                super.onBackPressed();
+            }
+        }
+    }
 }
