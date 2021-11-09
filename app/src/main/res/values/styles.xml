@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ToolbarIconColor" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="colorControlNormal">#DB1D40</item>
+    </style>
+</resources>

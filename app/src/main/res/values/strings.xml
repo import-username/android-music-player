@@ -22,6 +22,7 @@
     <string name="music_player_songs_menu_title">Songs</string>
     <string name="music_player_songs_menu_create_song">ADD</string>
     <string name="songs_menu_search_bar_hint">Search songs...</string>
-    <string name="add_song_menu_text">Add a music file to get started!</string>
+    <string name="add_song_menu_text">Add a <font color="#DB1D40">music</font> file to get started!</string>
     <string name="add_song_menu_button_text">Add File</string>
+    <string name="create_song_menu_header_text"><font color="#DB1D40">CREATE</font> SONG</string>
 </resources>

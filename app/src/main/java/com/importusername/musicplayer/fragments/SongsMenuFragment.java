@@ -89,7 +89,6 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                     .addToBackStack("SongsMenuFragment")
                     .commit();
 
-
 //            SongsMenuFragment.this.displayDirectoryTree();
         };
     }
@@ -121,6 +120,10 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
 
     @Override
     public boolean shouldAllowBackPress() {
-        return getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof CreateSongMenuFragment;
+        if (getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof IBackPressFragment) {
+            return ((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container)).shouldAllowBackPress();
+        }
+
+        return false;
     }
 }
