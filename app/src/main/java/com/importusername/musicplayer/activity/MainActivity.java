@@ -8,7 +8,7 @@ import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
-
+// TODO - add focusable, clickable properties to every xml layout file
 // TODO - add loading screen
 // TODO - add connection timeout when sending request to server
 public class MainActivity extends AppCompatActivity {

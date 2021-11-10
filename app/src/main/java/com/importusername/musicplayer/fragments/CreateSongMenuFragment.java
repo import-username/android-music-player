@@ -46,14 +46,8 @@ public class CreateSongMenuFragment extends Fragment implements IBackPressFragme
                 .replace(R.id.create_song_menu_fragment, AddSongFileMenuFragment.class, null)
                 .commit();
 
-//        ((AppCompatButton) view.findViewById(R.id.add_song_file_button)).setOnClickListener((View clickView) -> {
-//            CreateSongMenuFragment.this.displayDirectoryTree();
-//        });
-
         return view;
     }
-
-
 
     @Override
     public boolean shouldAllowBackPress() {

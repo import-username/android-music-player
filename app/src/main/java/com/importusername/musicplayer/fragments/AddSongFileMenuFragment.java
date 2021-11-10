@@ -34,6 +34,14 @@ public class AddSongFileMenuFragment extends Fragment {
                         final Uri fileUri = dataIntent.getData();
 
                         if (fileUri != null) {
+                            final CreateSongItemMenuFragment createSongItemMenuFragment = new CreateSongItemMenuFragment();
+                            Bundle bundle = new Bundle();
+                            bundle.putString("song_file_uri", fileUri.getPath());
+
+                            createSongItemMenuFragment.setArguments(bundle);
+                            getParentFragmentManager().beginTransaction()
+                                    .replace(R.id.create_song_menu_fragment, createSongItemMenuFragment, null)
+                                    .commit();
 
 //                            try {
 //                                AddSongFileMenuFragment.this.uploadFile(fileUri);
