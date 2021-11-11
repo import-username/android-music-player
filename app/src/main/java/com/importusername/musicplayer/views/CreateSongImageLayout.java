@@ -3,8 +3,12 @@ package com.importusername.musicplayer.views;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,9 +41,9 @@ public class CreateSongImageLayout extends ConstraintLayout {
      */
     public void setCustomImage(InputStream inputStream) {
         final ImageView customImage = ((ImageView) this.getViewById(R.id.create_song_menu_image_custom));
+
         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-        bitmap.setWidth(this.getWidth());
-        bitmap.setHeight(this.getHeight());
+        // TODO - add conditional for invalid files
 
         customImage.setImageBitmap(bitmap);
         this.toggleDefaultImage(false);
@@ -80,7 +84,9 @@ public class CreateSongImageLayout extends ConstraintLayout {
 
         if (visible) {
             defaultImage.setVisibility(View.VISIBLE);
+            this.setBackgroundColor(getResources().getColor(R.color.songs_menu_song_default_icon_background, null));
         } else {
+            this.setBackgroundColor(Color.TRANSPARENT);
             defaultImage.setVisibility(View.GONE);
         }
     }
