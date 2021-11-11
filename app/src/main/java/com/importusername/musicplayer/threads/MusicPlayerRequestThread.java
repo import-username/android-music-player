@@ -29,6 +29,8 @@ public class MusicPlayerRequestThread extends Thread {
 
     private Map<String, String> headers;
 
+    private int connectionTimeout = 0;
+
     /**
      * @param url Url to send request to.
      * @param requestMethod Request method enum
@@ -73,6 +75,10 @@ public class MusicPlayerRequestThread extends Thread {
         this.headers = headers;
     }
 
+    public void setConnectionTimeout(int timeout) {
+        this.connectionTimeout = timeout;
+    }
+
     @Override
     public void run() {
         final MusicPlayerRequest musicPlayerRequest = new MusicPlayerRequest(this.url, this.authenticate, this.applicationContext);
@@ -83,6 +89,10 @@ public class MusicPlayerRequestThread extends Thread {
 
         if (this.headers != null) {
             musicPlayerRequest.setHeaders(this.headers);
+        }
+
+        if (this.connectionTimeout > 0) {
+            musicPlayerRequest.setConnectionTimeout(this.connectionTimeout);
         }
 
         try {

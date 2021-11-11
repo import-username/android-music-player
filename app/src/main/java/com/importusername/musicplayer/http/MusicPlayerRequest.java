@@ -34,6 +34,8 @@ public class MusicPlayerRequest {
 
     private Map<String, List<String>> responseHeaders;
 
+    private int connectionTimeout = 10000;
+
     /**
      * Initializes instance fields and calls setAuthCookie method.
      * @param url Url to send request to. Should include protocol, port (if necessary), endpoint, url param, and query params.
@@ -86,6 +88,14 @@ public class MusicPlayerRequest {
     }
 
     /**
+     * Sets duration before timeout for http request.
+     * @param timeout Timeout duration in milliseconds.
+     */
+    public void setConnectionTimeout(int timeout) {
+        this.connectionTimeout = timeout;
+    }
+
+    /**
      * Sets httpBody field.
      * @param httpBody HttpBody object.
      */
@@ -111,6 +121,7 @@ public class MusicPlayerRequest {
         final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setDoInput(true);
         urlConnection.setRequestMethod("GET");
+        urlConnection.setConnectTimeout(this.connectionTimeout);
 
         this.addRequestHeaders(urlConnection);
 
@@ -144,6 +155,7 @@ public class MusicPlayerRequest {
         final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setDoInput(true);
         urlConnection.setDoOutput(true);
+        urlConnection.setConnectTimeout(this.connectionTimeout);
 
         urlConnection.setRequestMethod("POST");
 
