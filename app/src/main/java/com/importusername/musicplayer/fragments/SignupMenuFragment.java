@@ -84,7 +84,11 @@ public class SignupMenuFragment extends Fragment {
             if (status == 200) {
                 // TODO - change to login activity or automatically login
             } else {
-                SignupMenuFragment.this.displayRequestErrorMessage(new JSONObject(response).getString("message"));
+                try {
+                    SignupMenuFragment.this.displayRequestErrorMessage(new JSONObject(response).getString("message"));
+                } catch (JSONException e) {
+                    SignupMenuFragment.this.displayRequestErrorMessage("Error");
+                }
             }
         };
     }
