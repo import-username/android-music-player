@@ -25,4 +25,8 @@
     <string name="add_song_menu_text">Add a <font color="#DB1D40">music</font> file to get started!</string>
     <string name="add_song_menu_button_text">Add File</string>
     <string name="create_song_menu_header_text"><font color="#DB1D40">CREATE</font> SONG</string>
+    <string name="network_connection_error_status_text">503</string>
+    <string name="network_connection_error_title_text">NETWORK ERROR</string>
+    <string name="network_connection_error_detail_text">Failed to establish connection to server. Try again later.</string>
+    <string name="retry_connection_button_text"><font color="#DB1D40">TRY</font> AGAIN</string>
 </resources>

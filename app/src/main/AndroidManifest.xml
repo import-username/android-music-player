@@ -21,5 +21,6 @@
         <activity android:name=".activity.MusicPlayerActivity"
                   android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".activity.AuthFormActivity" />
+        <activity android:name=".activity.NetworkErrorActivity" />
     </application>
 </manifest>

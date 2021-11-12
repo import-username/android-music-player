@@ -1,6 +1,7 @@
 package com.importusername.musicplayer.activity;
 
 import android.content.Intent;
+import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.importusername.musicplayer.enums.RequestMethod;
@@ -33,16 +34,27 @@ public class MainActivity extends AppCompatActivity {
 
     private IHttpRequestAction musicPlayerRequestAction() {
         return (status, response, headers) -> {
-            if (status == 200) {
-                // If /authenticate endpoint responds with status 200
-                final Intent musicPlayerIntent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+            switch (status) {
+                case 200:
+                    // If /authenticate endpoint responds with status 200
+                    final Intent musicPlayerIntent = new Intent(MainActivity.this, MusicPlayerActivity.class);
 
-                this.startActivity(musicPlayerIntent);
-            } else {
-                // If /authenticate endpoint doesn't respond with status 200
-                final Intent loginActivity = new Intent(MainActivity.this, AuthFormActivity.class);
+                    this.startActivity(musicPlayerIntent);
 
-                this.startActivity(loginActivity);
+                    break;
+                case 503:
+                    final Intent networkErrorIntent = new Intent(MainActivity.this, NetworkErrorActivity.class);
+
+                    this.startActivity(networkErrorIntent);
+
+                    break;
+                default:
+                    // If /authenticate endpoint doesn't respond with status 200
+                    final Intent loginActivity = new Intent(MainActivity.this, AuthFormActivity.class);
+
+                    this.startActivity(loginActivity);
+
+                    break;
             }
         };
     }
