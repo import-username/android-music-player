@@ -12,5 +12,5 @@ public interface IHttpRequestAction {
     /**
      * @param status Response status code from http request.
      */
-    void requestAction(int status, String response, Map<String, List<String>> headers) throws JSONException;
+    void requestAction(int status, String response, Map<String, List<String>> headers);
 }
