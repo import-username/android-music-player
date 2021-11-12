@@ -99,8 +99,8 @@ public class MusicPlayerRequestThread extends Thread {
             this.sendRequest(musicPlayerRequest);
 
             this.requestAction.requestAction(musicPlayerRequest.getStatus(), musicPlayerRequest.getResponse(), musicPlayerRequest.getResponseHeaders());
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            this.requestAction.requestAction(503, "Connection Error", null);
         }
     }
 }
