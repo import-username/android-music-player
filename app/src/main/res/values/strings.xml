@@ -29,4 +29,7 @@
     <string name="network_connection_error_title_text">NETWORK ERROR</string>
     <string name="network_connection_error_detail_text">Failed to establish connection to server. Try again later.</string>
     <string name="retry_connection_button_text"><font color="#DB1D40">TRY</font> AGAIN</string>
+    <string name="create_song_item_title_hint"><font color="#DB1D40">SONG</font> TITLE</string>
+    <string name="create_song_item_author_hint"><font color="#DB1D40">AUTHOR</font> NAME</string>
+    <string name="create_song_item_submit_button_text">CREATE SONG</string>
 </resources>
