@@ -58,6 +58,7 @@ public class CreateSongImageLayout extends ConstraintLayout {
         customImage.setVisibility(View.GONE);
         customImage.setImageDrawable(null);
 
+        this.toggleCustomImage(false);
         this.toggleDefaultImage(true);
     }
 

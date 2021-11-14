@@ -34,6 +34,10 @@ public class CreateSongItemMenuFragment extends Fragment {
 
                             final CreateSongImageLayout createSongImageLayout = getView().findViewById(R.id.create_song_menu_image_container);
 
+                            CreateSongItemMenuFragment.this.getActivity().runOnUiThread(() -> {
+                                CreateSongItemMenuFragment.this.getView().findViewById(R.id.remove_song_item_thumbnail_button).setVisibility(View.VISIBLE);
+                            });
+
                             try {
                                 createSongImageLayout.setCustomImage(getContext().getContentResolver().openInputStream(fileUri));
                             } catch (FileNotFoundException e) {
@@ -58,6 +62,8 @@ public class CreateSongItemMenuFragment extends Fragment {
 
         view.findViewById(R.id.create_song_menu_image_container).setOnClickListener(this.createSongImageListener());
 
+        view.findViewById(R.id.remove_song_item_thumbnail_button).setOnClickListener(this.removeThumbnailBtnListener());
+
         return view;
     }
 
@@ -72,5 +78,12 @@ public class CreateSongItemMenuFragment extends Fragment {
         fileChooserIntent.setType("image/*");
 
         directoryTreeActivityResult.launch(fileChooserIntent);
+    }
+
+    private View.OnClickListener removeThumbnailBtnListener() {
+        return (View view) -> {
+            ((CreateSongImageLayout) CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_menu_image_container)).removeCustomImage();
+            view.setVisibility(View.GONE);
+        };
     }
 }
