@@ -70,6 +70,17 @@
                 android:textColorHint="@color/white"
                 android:textColor="@color/white"
                 android:textSize="16sp"/>
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@id/create_song_item_title_input"
+            app:layout_constraintLeft_toRightOf="@id/create_song_item_title_input"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/create_song_item_title_input"
+            app:layout_constraintHorizontal_bias="0.1"
+            android:textColor="@color/app_secondary_variant_color"
+            android:textSize="16sp"
+            android:text="*"/>
     <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/create_song_item_author_input"
                 android:layout_width="180dp"
