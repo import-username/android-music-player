@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
@@ -16,6 +17,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.loading_screen_layout);
 
         if (AppCookie.getAuthCookie(this) == null) {
             startActivity(new Intent(MainActivity.this, AuthFormActivity.class));
