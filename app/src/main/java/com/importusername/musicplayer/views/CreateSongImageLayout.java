@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -16,6 +17,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.importusername.musicplayer.R;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 public class CreateSongImageLayout extends ConstraintLayout {
@@ -90,5 +93,31 @@ public class CreateSongImageLayout extends ConstraintLayout {
             this.setBackgroundColor(Color.TRANSPARENT);
             defaultImage.setVisibility(View.GONE);
         }
+    }
+
+    /**
+     * Returns true/false if current image is custom or not.
+     * @return Boolean value.
+     */
+    public boolean isCustomImage() {
+        return (this.getViewById(R.id.create_song_menu_image_custom)).getVisibility() == View.VISIBLE;
+    }
+
+    /**
+     * Creates an inputstream from imageview's drawable.
+     * @return InputStream object
+     */
+    public InputStream getCustomImage() {
+        final ImageView customImageView = ((ImageView) this.getViewById(R.id.create_song_menu_image_custom));
+
+        final BitmapDrawable bitmapDrawable = ((BitmapDrawable) customImageView.getDrawable());
+
+        final Bitmap bitmap = bitmapDrawable.getBitmap();
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+
+        return new ByteArrayInputStream(outputStream.toByteArray());
     }
 }
