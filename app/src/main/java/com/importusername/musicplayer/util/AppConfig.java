@@ -33,4 +33,5 @@ public class AppConfig {
             return null;
         }
     }
+    // TODO - add property key constants
 }

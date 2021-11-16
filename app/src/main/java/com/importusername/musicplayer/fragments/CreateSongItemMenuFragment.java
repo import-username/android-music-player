@@ -15,10 +15,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.enums.RequestMethod;
+import com.importusername.musicplayer.http.MultipartRequestEntity;
+import com.importusername.musicplayer.interfaces.IHttpRequestAction;
+import com.importusername.musicplayer.threads.MultipartRequestThread;
+import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
+import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.views.CreateSongImageLayout;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 
 public class CreateSongItemMenuFragment extends Fragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
@@ -64,8 +71,45 @@ public class CreateSongItemMenuFragment extends Fragment {
 
         view.findViewById(R.id.remove_song_item_thumbnail_button).setOnClickListener(this.removeThumbnailBtnListener());
 
+        view.findViewById(R.id.submit_song_button).setOnClickListener(this.submitSongButtonListener());
+
         return view;
     }
+
+    private View.OnClickListener submitSongButtonListener() {
+        return (View view) -> {
+            final MultipartRequestEntity multipartEntity = new MultipartRequestEntity();
+
+            final CreateSongImageLayout songThumbnail = getView().findViewById(R.id.create_song_menu_image_container);
+
+            if (songThumbnail.isCustomImage()) {
+                try {
+                    multipartEntity.appendData(
+                            "songThumbnail",
+                            songThumbnail.getCustomImage(),
+                            "image/jpeg",
+                            "song_thumbnail");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            final MultipartRequestThread requestThread = new MultipartRequestThread(
+                    AppConfig.getProperty("url", CreateSongItemMenuFragment.this.getContext()) + "/song/upload-song",
+                    true,
+                    CreateSongItemMenuFragment.this.getContext(),
+                    multipartEntity
+            );
+
+            requestThread.start();
+        };
+    }
+
+//    private IHttpRequestAction createSongRequestAction() {
+//        return (status, response, headers) -> {
+//            Log.d("CreateSongItemMenuFrag", status + "");
+//        };
+//    }
 
     private View.OnClickListener createSongImageListener() {
         return (View view) -> {
