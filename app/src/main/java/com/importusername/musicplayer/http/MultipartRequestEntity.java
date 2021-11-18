@@ -3,6 +3,7 @@ package com.importusername.musicplayer.http;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 /**
@@ -33,6 +34,23 @@ public class MultipartRequestEntity {
         }
     }
 
+    public void appendData(String fieldname, String value, String contentType) throws Exception {
+        final String multipartContentType = contentType == null ? "text/plain" : contentType;
+
+        if (isValidArguments(fieldname, value, multipartContentType)) {
+            final MultipartRequestPart part = new MultipartRequestPart(
+                    fieldname,
+                    multipartContentType,
+                    value,
+                    null,
+                    true);
+
+            this.multipartData.add(part);
+        } else {
+            throw new Exception("Invalid parameters");
+        }
+    }
+
     /**
      * Returns if appendData method arguments are valid
      */
@@ -54,7 +72,13 @@ public class MultipartRequestEntity {
             outputStream.writeBytes(part.getContentTypeString());
             outputStream.flush();
 
-            this.writeToOutput(part.getPartDataStream(), outputStream);
+            // TODO - fix bug when part object constructor is given an inputstream with content type text/plain
+            if (part.getContentType().equals("text/plain")) {
+                outputStream.writeBytes(part.getStringValue());
+                outputStream.writeBytes("\r\n");
+            } else {
+                this.writeToOutput(part.getPartDataStream(), outputStream);
+            }
         }
 
         outputStream.writeBytes(String.format("--%s--\r\n", this.boundary));
