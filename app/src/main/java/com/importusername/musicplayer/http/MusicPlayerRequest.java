@@ -160,7 +160,7 @@ public class MusicPlayerRequest {
         urlConnection.setRequestMethod("POST");
 
         this.addRequestHeaders(urlConnection);
-        this.addRequestBody(urlConnection);
+        this.addRequestBody(urlConnection, true);
 
         urlConnection.connect();
 
@@ -192,9 +192,7 @@ public class MusicPlayerRequest {
 
         urlConnection.setRequestProperty("ENCTYPE", "multipart/form-data");
 
-        if (this.authenticate) {
-            urlConnection.setRequestProperty("Cookie", AppCookie.getAuthCookie(this.applicationContext));
-        }
+        this.addRequestHeaders(urlConnection);
 
         urlConnection.connect();
 
@@ -223,9 +221,10 @@ public class MusicPlayerRequest {
     /**
      * Writes http body to HttpURLConnection object's outputstream.
      * @param connection HttpURLConnection object.
+     * @param closeStreamWhenDone Boolean value to close stream when finished writing.
      * @throws IOException
      */
-    private void addRequestBody(HttpURLConnection connection) throws IOException {
+    private void addRequestBody(HttpURLConnection connection, boolean closeStreamWhenDone) throws IOException {
         if (this.requestBody != null) {
             OutputStream outputStream = new BufferedOutputStream(connection.getOutputStream());
 
@@ -233,11 +232,14 @@ public class MusicPlayerRequest {
                 case "JSON":
                     outputStream.write(((JSONObject) this.requestBody).toString().getBytes());
                     outputStream.flush();
-                    outputStream.close();
                     break;
                 case "TEXT":
                     outputStream.write(this.requestBody.toString().getBytes());
                     break;
+            }
+
+            if (closeStreamWhenDone) {
+                outputStream.close();
             }
         }
     }
