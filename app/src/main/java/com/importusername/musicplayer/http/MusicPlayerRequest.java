@@ -202,8 +202,13 @@ public class MusicPlayerRequest {
 
         this.responseStatus = urlConnection.getResponseCode();
 
+        if (urlConnection.getResponseCode() != 200) {
+            this.readHttpResponseBody(urlConnection.getErrorStream());
+        } else {
+            this.readHttpResponseBody(urlConnection.getInputStream());
+        }
+
         urlConnection.disconnect();
-        // TODO - read response message
     }
 
     /**
