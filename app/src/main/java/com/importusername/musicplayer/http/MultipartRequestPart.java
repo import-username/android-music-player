@@ -1,7 +1,9 @@
 package com.importusername.musicplayer.http;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Object that represents a single part in a multipart request.
@@ -11,7 +13,9 @@ public class MultipartRequestPart {
 
     private final String contentType;
 
-    private final InputStream partData;
+    private InputStream partData;
+
+    private String stringPartData;
 
     private final String filename;
 
@@ -32,6 +36,14 @@ public class MultipartRequestPart {
         this.includeNewlines = includeNewlines;
     }
 
+    public MultipartRequestPart(String fieldname, String contentType, String partData, String filename, boolean includeNewlines) {
+        this.fieldname = fieldname;
+        this.contentType = contentType;
+        this.stringPartData = partData;
+        this.filename = filename;
+        this.includeNewlines = includeNewlines;
+    }
+
     public String getFieldname() {
         return this.fieldname;
     }
@@ -41,7 +53,15 @@ public class MultipartRequestPart {
     }
 
     public InputStream getPartDataStream() {
-        return partData;
+        if (this.stringPartData != null) {
+            return new ByteArrayInputStream(this.stringPartData.getBytes(StandardCharsets.UTF_8));
+        }
+
+        return this.partData;
+    }
+
+    public String getStringValue() {
+        return this.stringPartData;
     }
 
     public String getFilename() {
@@ -52,14 +72,22 @@ public class MultipartRequestPart {
      * @return Part content disposition header string.
      */
     public String getContentDisposition() {
-        return String.format("Content-Disposition: form-data;name=\"%s\";filename=\"%s\"%s", this.fieldname, this.filename, this.getNewlineString(1));
+        final StringBuilder contentDispositionString = new StringBuilder("Content-Disposition: form-data;name=" + this.fieldname + "");
+
+        if (this.filename != null) {
+            contentDispositionString.append(String.format(";filename=%s", this.filename));
+        }
+
+        contentDispositionString.append(this.getNewlineString(1));
+        
+        return contentDispositionString.toString();
     }
 
     /**
      * @return Part content type header string.
      */
     public String getContentTypeString() {
-        return String.format("content-type: %s%s", URLConnection.guessContentTypeFromName(this.filename), this.getNewlineString(2));
+        return String.format("content-type: %s%s", this.filename != null ? URLConnection.guessContentTypeFromName(this.filename) : "text/plain", this.getNewlineString(2));
     }
 
     private String getNewlineString(int newlineCount) {
