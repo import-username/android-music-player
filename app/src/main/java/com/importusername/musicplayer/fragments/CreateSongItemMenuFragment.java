@@ -3,29 +3,28 @@ package com.importusername.musicplayer.fragments;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import com.importusername.musicplayer.R;
-import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.MultipartRequestEntity;
-import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MultipartRequestThread;
-import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.views.CreateSongImageLayout;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
+import java.io.InputStream;
+import java.net.URLConnection;
 
 public class CreateSongItemMenuFragment extends Fragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
@@ -80,28 +79,47 @@ public class CreateSongItemMenuFragment extends Fragment {
         return (View view) -> {
             final MultipartRequestEntity multipartEntity = new MultipartRequestEntity();
 
+            final Uri fileUri = Uri.parse(getArguments().getString("song_file_uri"));
+
             final CreateSongImageLayout songThumbnail = getView().findViewById(R.id.create_song_menu_image_container);
 
-            if (songThumbnail.isCustomImage()) {
-                try {
-                    multipartEntity.appendData(
-                            "songThumbnail",
-                            songThumbnail.getCustomImage(),
-                            "image/jpeg",
-                            "song_thumbnail");
-                } catch (Exception e) {
-                    e.printStackTrace();
+            final EditText songTitleInput = ((EditText) CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_item_title_input));
+
+            try {
+                // Song title part
+                if (songTitleInput.getText().length() > 0) {
+                    multipartEntity.appendData("songTitle", songTitleInput.getText().toString(), "text/plain");
+                } else {
+                    multipartEntity.appendData("songTitle", DocumentFile.fromSingleUri(
+                            CreateSongItemMenuFragment.this.getContext(), fileUri).getName(), "text/plain");
                 }
+
+                // Thumbnail part
+                if (songThumbnail.isCustomImage()) {
+                    multipartEntity.appendData(
+                        "songThumbnail",
+                        songThumbnail.getCustomImage(),
+                        "image/jpeg",
+                        "song_thumbnail.jpg");
+                }
+
+                InputStream inputStream = CreateSongItemMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
+
+                final String filename = DocumentFile.fromSingleUri(CreateSongItemMenuFragment.this.getContext(), fileUri).getName();
+
+                multipartEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
+
+                final MultipartRequestThread requestThread = new MultipartRequestThread(
+                        AppConfig.getProperty("url", CreateSongItemMenuFragment.this.getContext()) + "/song/upload-song",
+                        true,
+                        CreateSongItemMenuFragment.this.getContext(),
+                        multipartEntity
+                );
+
+                requestThread.start();
+            } catch (Exception exc) {
+                exc.printStackTrace();
             }
-
-            final MultipartRequestThread requestThread = new MultipartRequestThread(
-                    AppConfig.getProperty("url", CreateSongItemMenuFragment.this.getContext()) + "/song/upload-song",
-                    true,
-                    CreateSongItemMenuFragment.this.getContext(),
-                    multipartEntity
-            );
-
-            requestThread.start();
         };
     }
 
@@ -130,4 +148,6 @@ public class CreateSongItemMenuFragment extends Fragment {
             view.setVisibility(View.GONE);
         };
     }
+
+    private void uploadSongFile() {}
 }
