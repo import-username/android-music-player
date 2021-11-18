@@ -31,25 +31,25 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 
 public class SongsMenuFragment extends Fragment implements IBackPressFragment {
-    private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-                @Override
-                public void onActivityResult(ActivityResult result) {
-                    final Intent dataIntent = result.getData();
-
-                    if (dataIntent != null) {
-                        final Uri fileUri = dataIntent.getData();
-
-                        if (fileUri != null) {
-                            try {
-                                SongsMenuFragment.this.uploadFile(fileUri);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            });
+//    private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
+//            new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+//                @Override
+//                public void onActivityResult(ActivityResult result) {
+//                    final Intent dataIntent = result.getData();
+//
+//                    if (dataIntent != null) {
+//                        final Uri fileUri = dataIntent.getData();
+//
+//                        if (fileUri != null) {
+//                            try {
+//                                SongsMenuFragment.this.uploadFile(fileUri);
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                }
+//            });
 
     public SongsMenuFragment() {
         super(R.layout.music_player_songs_menu_fragment);
@@ -93,30 +93,30 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
         };
     }
 
-    private void displayDirectoryTree() {
-        Intent fileChooserIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        fileChooserIntent.setType("*/*");
-
-        directoryTreeActivityResult.launch(fileChooserIntent);
-    }
-
-    private void uploadFile(Uri fileUri) throws Exception {
-        InputStream inputStream = SongsMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
-
-        final String filename = DocumentFile.fromSingleUri(SongsMenuFragment.this.getContext(), fileUri).getName();
-
-        final MultipartRequestEntity multipartRequestEntity = new MultipartRequestEntity();
-        multipartRequestEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
-
-        MultipartRequestThread multipartRequestThread = new MultipartRequestThread(
-                AppConfig.getProperty("url", getContext()) + "/song/upload-song",
-                true,
-                getContext(),
-                multipartRequestEntity
-        );
-
-        multipartRequestThread.start();
-    }
+//    private void displayDirectoryTree() {
+//        Intent fileChooserIntent = new Intent(Intent.ACTION_GET_CONTENT);
+//        fileChooserIntent.setType("*/*");
+//
+//        directoryTreeActivityResult.launch(fileChooserIntent);
+//    }
+//
+//    private void uploadFile(Uri fileUri) throws Exception {
+//        InputStream inputStream = SongsMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
+//
+//        final String filename = DocumentFile.fromSingleUri(SongsMenuFragment.this.getContext(), fileUri).getName();
+//
+//        final MultipartRequestEntity multipartRequestEntity = new MultipartRequestEntity();
+//        multipartRequestEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
+//
+//        MultipartRequestThread multipartRequestThread = new MultipartRequestThread(
+//                AppConfig.getProperty("url", getContext()) + "/song/upload-song",
+//                true,
+//                getContext(),
+//                multipartRequestEntity
+//        );
+//
+//        multipartRequestThread.start();
+//    }
 
     @Override
     public boolean shouldAllowBackPress() {

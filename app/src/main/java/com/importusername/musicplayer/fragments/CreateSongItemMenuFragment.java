@@ -3,6 +3,7 @@ package com.importusername.musicplayer.fragments;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.http.MultipartRequestEntity;
+import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MultipartRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.views.CreateSongImageLayout;
@@ -113,7 +115,8 @@ public class CreateSongItemMenuFragment extends Fragment {
                         AppConfig.getProperty("url", CreateSongItemMenuFragment.this.getContext()) + "/song/upload-song",
                         true,
                         CreateSongItemMenuFragment.this.getContext(),
-                        multipartEntity
+                        multipartEntity,
+                        CreateSongItemMenuFragment.this.multipartRequestAction()
                 );
 
                 requestThread.start();
@@ -146,6 +149,17 @@ public class CreateSongItemMenuFragment extends Fragment {
         return (View view) -> {
             ((CreateSongImageLayout) CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_menu_image_container)).removeCustomImage();
             view.setVisibility(View.GONE);
+        };
+    }
+
+    private IHttpRequestAction multipartRequestAction() {
+        return (status, response, headers) -> {
+            if (status == 200) {
+                // TODO - redirect to corresponding song menu or something
+            } else {
+                // TODO - display error
+                Log.d("CreateSongItemMenuFrag", response);
+            }
         };
     }
 
