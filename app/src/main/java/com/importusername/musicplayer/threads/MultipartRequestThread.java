@@ -37,5 +37,7 @@ public class MultipartRequestThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
+        requestAction.requestAction(musicPlayerRequest.getStatus(), musicPlayerRequest.getResponse(), musicPlayerRequest.getResponseHeaders());
     }
 }
