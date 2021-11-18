@@ -72,22 +72,4 @@ public class AddSongFileMenuFragment extends Fragment {
 
         directoryTreeActivityResult.launch(fileChooserIntent);
     }
-
-    private void uploadFile(Uri fileUri) throws Exception {
-        InputStream inputStream = AddSongFileMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
-
-        final String filename = DocumentFile.fromSingleUri(AddSongFileMenuFragment.this.getContext(), fileUri).getName();
-
-        final MultipartRequestEntity multipartRequestEntity = new MultipartRequestEntity();
-        multipartRequestEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
-
-        MultipartRequestThread multipartRequestThread = new MultipartRequestThread(
-                AppConfig.getProperty("url", getContext()) + "/song/upload-song",
-                true,
-                getContext(),
-                multipartRequestEntity
-        );
-
-        multipartRequestThread.start();
-    }
 }
