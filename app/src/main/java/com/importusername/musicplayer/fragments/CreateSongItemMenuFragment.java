@@ -83,6 +83,10 @@ public class CreateSongItemMenuFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Creates multipart entity object with all the available user input fields and sends request to server.
+     * @return View.OnClickListener function
+     */
     private View.OnClickListener submitSongButtonListener() {
         return (View view) -> {
             final MultipartRequestEntity multipartEntity = new MultipartRequestEntity();
@@ -138,12 +142,19 @@ public class CreateSongItemMenuFragment extends Fragment {
 //        };
 //    }
 
+    /**
+     * Click listener for create-song-image-layout view.
+     * @return View.OnClickListener function
+     */
     private View.OnClickListener createSongImageListener() {
         return (View view) -> {
             CreateSongItemMenuFragment.this.displayDirectoryTree();
         };
     }
 
+    /**
+     * Displays intent to allow user to select file.
+     */
     private void displayDirectoryTree() {
         Intent fileChooserIntent = new Intent(Intent.ACTION_GET_CONTENT);
         fileChooserIntent.setType("image/*");
@@ -151,6 +162,10 @@ public class CreateSongItemMenuFragment extends Fragment {
         directoryTreeActivityResult.launch(fileChooserIntent);
     }
 
+    /**
+     * Removes custom image set by user and resets to default image.
+     * @return View.OnClickListener function
+     */
     private View.OnClickListener removeThumbnailBtnListener() {
         return (View view) -> {
             ((CreateSongImageLayout) CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_menu_image_container)).removeCustomImage();
@@ -158,6 +173,10 @@ public class CreateSongItemMenuFragment extends Fragment {
         };
     }
 
+    /**
+     * Action to perform when multipart request is completed.
+     * @return IHttpRequestAction function
+     */
     private IHttpRequestAction multipartRequestAction() {
         return (status, response, headers) -> {
             final List<String> responseContentType = headers.get("content-type");
@@ -178,6 +197,11 @@ public class CreateSongItemMenuFragment extends Fragment {
         };
     }
 
+    /**
+     * Isolates all header content fields separated by a semicolon into a list object.
+     * @param content Header content field (ex. 'application/json; charset=utf-8')
+     * @return List object with generic type string.
+     */
     private List<String> parseHeaderContent(String content) {
         String removeWhiteSpace = content.replace(" ", "");
         List<String> parsedStringList = Arrays.asList(removeWhiteSpace.split(";"));
@@ -185,6 +209,10 @@ public class CreateSongItemMenuFragment extends Fragment {
         return parsedStringList;
     }
 
+    /**
+     * Displays an error message on the fragment's ui.
+     * @param message Error message to display.
+     */
     private void displayErrorMessage(String message) {
         CreateSongItemMenuFragment.this.getActivity().runOnUiThread(() -> {
             final TextView errorText = CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_item_error_text);
