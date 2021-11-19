@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -23,10 +24,15 @@ import com.importusername.musicplayer.threads.MultipartRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.views.CreateSongImageLayout;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CreateSongItemMenuFragment extends Fragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
@@ -154,13 +160,38 @@ public class CreateSongItemMenuFragment extends Fragment {
 
     private IHttpRequestAction multipartRequestAction() {
         return (status, response, headers) -> {
+            final List<String> responseContentType = headers.get("content-type");
+
             if (status == 200) {
                 // TODO - redirect to corresponding song menu or something
             } else {
-                // TODO - display error
-                Log.d("CreateSongItemMenuFrag", response);
+                if (responseContentType != null && CreateSongItemMenuFragment.this.parseHeaderContent(responseContentType.get(0)).contains("application/json")) {
+                    try {
+                        final JSONObject jsonResponse = new JSONObject(response);
+
+                        CreateSongItemMenuFragment.this.displayErrorMessage(jsonResponse.getString("message"));
+                    } catch (JSONException exc) {
+                        exc.printStackTrace();
+                    }
+                }
             }
         };
+    }
+
+    private List<String> parseHeaderContent(String content) {
+        String removeWhiteSpace = content.replace(" ", "");
+        List<String> parsedStringList = Arrays.asList(removeWhiteSpace.split(";"));
+
+        return parsedStringList;
+    }
+
+    private void displayErrorMessage(String message) {
+        CreateSongItemMenuFragment.this.getActivity().runOnUiThread(() -> {
+            final TextView errorText = CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_item_error_text);
+            errorText.setText(message);
+
+            errorText.setVisibility(View.VISIBLE);
+        });
     }
 
     private void uploadSongFile() {}
