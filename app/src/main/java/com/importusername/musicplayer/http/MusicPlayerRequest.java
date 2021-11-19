@@ -201,6 +201,7 @@ public class MusicPlayerRequest {
         multipartRequestEntity.writeMultipartData(outputStream, true);
 
         this.responseStatus = urlConnection.getResponseCode();
+        this.responseHeaders = urlConnection.getHeaderFields();
 
         if (urlConnection.getResponseCode() != 200) {
             this.readHttpResponseBody(urlConnection.getErrorStream());
