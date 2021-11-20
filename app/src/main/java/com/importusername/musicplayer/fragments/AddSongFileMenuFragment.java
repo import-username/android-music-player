@@ -3,6 +3,7 @@ package com.importusername.musicplayer.fragments;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +16,12 @@ import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.MultipartRequestEntity;
+import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MultipartRequestThread;
+import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,7 +73,7 @@ public class AddSongFileMenuFragment extends Fragment {
 
     private void displayDirectoryTree() {
         Intent fileChooserIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        fileChooserIntent.setType("*/*");
+        fileChooserIntent.setType("audio/*");
 
         directoryTreeActivityResult.launch(fileChooserIntent);
     }
