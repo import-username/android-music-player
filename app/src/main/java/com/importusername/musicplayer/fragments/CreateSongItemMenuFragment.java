@@ -106,6 +106,13 @@ public class CreateSongItemMenuFragment extends Fragment {
                             CreateSongItemMenuFragment.this.getContext(), fileUri).getName(), "text/plain");
                 }
 
+                // Song file part
+                InputStream inputStream = CreateSongItemMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
+
+                final String filename = DocumentFile.fromSingleUri(CreateSongItemMenuFragment.this.getContext(), fileUri).getName();
+
+                multipartEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
+
                 // Thumbnail part
                 if (songThumbnail.isCustomImage()) {
                     multipartEntity.appendData(
@@ -114,12 +121,6 @@ public class CreateSongItemMenuFragment extends Fragment {
                         "image/jpeg",
                         "song_thumbnail.jpg");
                 }
-
-                InputStream inputStream = CreateSongItemMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
-
-                final String filename = DocumentFile.fromSingleUri(CreateSongItemMenuFragment.this.getContext(), fileUri).getName();
-
-                multipartEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
 
                 final MultipartRequestThread requestThread = new MultipartRequestThread(
                         AppConfig.getProperty("url", CreateSongItemMenuFragment.this.getContext()) + "/song/upload-song",
