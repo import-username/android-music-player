@@ -3,6 +3,7 @@ package com.importusername.musicplayer.fragments;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,36 +21,31 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.SongsMenuListAdapter;
+import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.MultipartRequestEntity;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
+import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MultipartRequestThread;
+import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.List;
 
 public class SongsMenuFragment extends Fragment implements IBackPressFragment {
-//    private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
-//            new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-//                @Override
-//                public void onActivityResult(ActivityResult result) {
-//                    final Intent dataIntent = result.getData();
-//
-//                    if (dataIntent != null) {
-//                        final Uri fileUri = dataIntent.getData();
-//
-//                        if (fileUri != null) {
-//                            try {
-//                                SongsMenuFragment.this.uploadFile(fileUri);
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                }
-//            });
+    private final SongsMenuListAdapter songsMenuListAdapter = new SongsMenuListAdapter(new ArrayList<>(), this.addSongClickListener());
+
+    /**
+     * Maximum number of songs that server should send to client for get-songs request.
+     */
+    private final int songRequestLimit = 12;
 
     public SongsMenuFragment() {
         super(R.layout.music_player_songs_menu_fragment);
@@ -61,16 +57,19 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable @org.jetbrains.annotations.Nullable ViewGroup container, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.music_player_songs_menu_fragment, container, false);
 
-        final ArrayList<String> songs = new ArrayList<>();
-
         RecyclerView recyclerView = view.findViewById(R.id.songs_menu_recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
-        SongsMenuListAdapter songsMenuListAdapter = new SongsMenuListAdapter(songs, this.addSongClickListener());
+
         recyclerView.setAdapter(songsMenuListAdapter);
+
+        SongsMenuFragment.this.sendSongsRequest();
 
         return view;
     }
 
+    /**
+     * Listener function for displaying fragment which allows user to add an audio file and create a song item.
+     */
     private View.OnClickListener addSongClickListener() {
         return (View view) -> {
             final FragmentManager fragmentManager = getChildFragmentManager();
@@ -88,35 +87,8 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                     .setReorderingAllowed(true)
                     .addToBackStack("SongsMenuFragment")
                     .commit();
-
-//            SongsMenuFragment.this.displayDirectoryTree();
         };
     }
-
-//    private void displayDirectoryTree() {
-//        Intent fileChooserIntent = new Intent(Intent.ACTION_GET_CONTENT);
-//        fileChooserIntent.setType("*/*");
-//
-//        directoryTreeActivityResult.launch(fileChooserIntent);
-//    }
-//
-//    private void uploadFile(Uri fileUri) throws Exception {
-//        InputStream inputStream = SongsMenuFragment.this.getContext().getContentResolver().openInputStream(fileUri);
-//
-//        final String filename = DocumentFile.fromSingleUri(SongsMenuFragment.this.getContext(), fileUri).getName();
-//
-//        final MultipartRequestEntity multipartRequestEntity = new MultipartRequestEntity();
-//        multipartRequestEntity.appendData("songFile", inputStream, URLConnection.guessContentTypeFromName(filename), filename);
-//
-//        MultipartRequestThread multipartRequestThread = new MultipartRequestThread(
-//                AppConfig.getProperty("url", getContext()) + "/song/upload-song",
-//                true,
-//                getContext(),
-//                multipartRequestEntity
-//        );
-//
-//        multipartRequestThread.start();
-//    }
 
     @Override
     public boolean shouldAllowBackPress() {
@@ -125,5 +97,46 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
         }
 
         return false;
+    }
+
+    /**
+     * Sends a get request to server to get an array of json song objects.
+     */
+    private void sendSongsRequest() {
+        final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
+                AppConfig.getProperty(
+                        "url", SongsMenuFragment.this.getContext()
+                ) + Endpoints.GET_SONGS + "?limit=" + SongsMenuFragment.this.songRequestLimit + "&includeTotal=true",
+                RequestMethod.GET,
+                SongsMenuFragment.this.getContext(),
+                true,
+                SongsMenuFragment.this.getSongsRequestAction()
+        );
+
+        requestThread.start();
+    }
+
+    /**
+     * Adds each song item to the recyclerview adapter's array.
+     */
+    private IHttpRequestAction getSongsRequestAction() {
+        return (status, response, headers) -> {
+            try {
+                final JSONObject responseObject = new JSONObject(response);
+                final JSONArray rowsArray = responseObject.getJSONArray("rows");
+
+                getActivity().runOnUiThread(() -> {
+                    for (int i = 0; i < rowsArray.length(); i++) {
+                        try {
+                            this.songsMenuListAdapter.addItem(rowsArray.getJSONObject(i), false);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (JSONException exc) {
+                exc.printStackTrace();
+            }
+        };
     }
 }
