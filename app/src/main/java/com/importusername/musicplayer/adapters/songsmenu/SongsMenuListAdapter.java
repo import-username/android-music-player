@@ -1,4 +1,4 @@
-package com.importusername.musicplayer.adapters;
+package com.importusername.musicplayer.adapters.songsmenu;
 
 import android.util.Log;
 import android.view.LayoutInflater;
