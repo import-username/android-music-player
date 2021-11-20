@@ -117,7 +117,7 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                 getActivity().runOnUiThread(() -> {
                     for (int i = 0; i < rowsArray.length(); i++) {
                         try {
-                            this.songsMenuListAdapter.addItem(rowsArray.getJSONObject(i), false);
+                            this.songsMenuListAdapter.addItem(new SongsMenuItem(rowsArray.getJSONObject(i)), false);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
