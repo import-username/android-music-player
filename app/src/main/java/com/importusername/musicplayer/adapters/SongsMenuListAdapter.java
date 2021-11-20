@@ -4,11 +4,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import com.importusername.musicplayer.R;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -28,6 +31,20 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.songsMenuArray.add(null);
         this.songsMenuArray.addAll(songsMenuArray);
         this.addButtonListener = addButtonListener;
+    }
+
+    /**
+     * Adds music item to songs menu array and notifies adapter of data change.
+     * @param itemObject Json object representing song data received from server.
+     * @param fetchThumbnail Boolean value to determine if get request should be sent to receive the song item's thumbnail image.
+     * @throws JSONException
+     */
+    public void addItem(JSONObject itemObject, boolean fetchThumbnail) throws JSONException {
+        if (itemObject != null) {
+            this.songsMenuArray.add(itemObject.getString("song_title"));
+
+            this.notifyDataSetChanged();
+        }
     }
 
     @NonNull
@@ -59,7 +76,14 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     @Override
     public void onBindViewHolder(@NonNull @NotNull RecyclerView.ViewHolder holder, int position) {
+        switch (this.getItemViewType(position)) {
+            case VIEW_HEADER:
+                break;
+            case VIEW_MUSIC_ITEM:
+                ((ViewHolder) holder).setText(this.songsMenuArray.get(position));
 
+                break;
+        }
     }
 
     @Override
@@ -83,6 +107,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             super(itemView);
 
             constraintLayout = itemView.findViewById(R.id.songs_menu_music_item_container);
+        }
+
+        public void setText(String text) {
+            ((TextView) this.constraintLayout.findViewById(R.id.songs_menu_music_item_title)).setText(text);
         }
     }
 
