@@ -16,7 +16,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private ArrayList<String> songsMenuArray = new ArrayList<>();
+    private ArrayList<SongsMenuItem> songsMenuArray = new ArrayList<>();
 
     private final int VIEW_HEADER = 0;
     private final int VIEW_MUSIC_ITEM = 1;
@@ -27,7 +27,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
      * Initialize songs menu array
      * @param songsMenuArray Array containing list of user songs.
      */
-    public SongsMenuListAdapter(ArrayList<String> songsMenuArray, View.OnClickListener addButtonListener) {
+    public SongsMenuListAdapter(ArrayList<SongsMenuItem> songsMenuArray, View.OnClickListener addButtonListener) {
         this.songsMenuArray.add(null);
         this.songsMenuArray.addAll(songsMenuArray);
         this.addButtonListener = addButtonListener;
@@ -35,13 +35,13 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     /**
      * Adds music item to songs menu array and notifies adapter of data change.
-     * @param itemObject Json object representing song data received from server.
+     * @param songsMenuItem Songs menu item object representing song data received from server.
      * @param fetchThumbnail Boolean value to determine if get request should be sent to receive the song item's thumbnail image.
      * @throws JSONException
      */
-    public void addItem(JSONObject itemObject, boolean fetchThumbnail) throws JSONException {
-        if (itemObject != null) {
-            this.songsMenuArray.add(itemObject.getString("song_title"));
+    public void addItem(SongsMenuItem songsMenuItem, boolean fetchThumbnail) throws JSONException {
+        if (songsMenuItem != null) {
+            this.songsMenuArray.add(songsMenuItem);
 
             this.notifyDataSetChanged();
         }
@@ -80,7 +80,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             case VIEW_HEADER:
                 break;
             case VIEW_MUSIC_ITEM:
-                ((ViewHolder) holder).setText(this.songsMenuArray.get(position));
+                ((ViewHolder) holder).setText(this.songsMenuArray.get(position).getSongName());
 
                 break;
         }
