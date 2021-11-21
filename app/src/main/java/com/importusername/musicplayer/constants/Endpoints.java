@@ -5,4 +5,6 @@ package com.importusername.musicplayer.constants;
  */
 public class Endpoints {
     public static final String GET_SONGS = "/song/get-songs";
+
+    public static final String GET_THUMBNAIL = "/song/get-thumbnail";
 }
