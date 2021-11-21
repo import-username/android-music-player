@@ -97,13 +97,16 @@ public class CreateSongItemMenuFragment extends Fragment {
 
             final EditText songTitleInput = ((EditText) CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_item_title_input));
 
+            final EditText songAuthorInput = ((EditText) CreateSongItemMenuFragment.this.getView().findViewById(R.id.create_song_item_author_input));
+
             try {
                 // Song title part
                 if (songTitleInput.getText().length() > 0) {
                     multipartEntity.appendData("songTitle", songTitleInput.getText().toString(), "text/plain");
                 } else {
-                    multipartEntity.appendData("songTitle", DocumentFile.fromSingleUri(
-                            CreateSongItemMenuFragment.this.getContext(), fileUri).getName(), "text/plain");
+                    CreateSongItemMenuFragment.this.displayErrorMessage("Song title is a required field.");
+
+                    return;
                 }
 
                 // Song file part
@@ -120,6 +123,15 @@ public class CreateSongItemMenuFragment extends Fragment {
                         songThumbnail.getCustomImage(),
                         "image/jpeg",
                         "song_thumbnail.jpg");
+                }
+
+                // Author part
+                if (songAuthorInput.getText().length() > 0) {
+                    multipartEntity.appendData(
+                            "songAuthor",
+                            songAuthorInput.getText().toString(),
+                            "text/plain"
+                    );
                 }
 
                 final MultipartRequestThread requestThread = new MultipartRequestThread(
