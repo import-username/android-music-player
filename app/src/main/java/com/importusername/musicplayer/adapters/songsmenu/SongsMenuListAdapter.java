@@ -161,7 +161,6 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         return viewHolder;
     }
 
-    // TODO - query database for more songs when the last song item of the data set is within view
     @Override
     public void onBindViewHolder(@NonNull @NotNull RecyclerView.ViewHolder holder, int position) {
         switch (this.getItemViewType(position)) {
@@ -173,7 +172,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
                 if (songItem.getSongThumbnailId() != null) {
                     ((ViewHolder) holder).setItemThumbnail(songItem.getSongThumbnailId().split("/")[2]);
-                    ((ViewHolder) holder).setIsRecyclable(false);
+                } else {
+                    ((ViewHolder) holder).clearThumbnail();
                 }
 
                 break;
@@ -241,6 +241,21 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             Glide.with(this.fragmentActivity)
                     .load(glideUrl)
                     .into(thumbnailImageView);
+        }
+
+        public void clearThumbnail() {
+            this.constraintLayout.findViewById(R.id.songs_menu_music_item_logo_container).setBackgroundResource(R.color.songs_menu_song_default_icon_background);
+
+            final ImageView thumbnailDefaultIcon = this.constraintLayout.findViewById(R.id.songs_menu_music_item_logo);
+            final ImageView thumbnailImageView = this.constraintLayout.findViewById(R.id.songs_menu_music_item_thumbnail);
+
+            thumbnailImageView.setImageResource(android.R.color.transparent);
+
+            Glide.with(this.fragmentActivity)
+                    .clear(thumbnailImageView);
+
+            thumbnailDefaultIcon.setVisibility(View.VISIBLE);
+            thumbnailImageView.setVisibility(View.GONE);
         }
 
         private IThumbnailRequestAction requestAction(ImageView defaultImg, ImageView thumbnailImg) {
