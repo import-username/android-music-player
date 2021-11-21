@@ -29,7 +29,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class SongsMenuFragment extends Fragment implements IBackPressFragment {
-    private final SongsMenuListAdapter songsMenuListAdapter = new SongsMenuListAdapter(new ArrayList<>(), this.addSongClickListener());
+    private SongsMenuListAdapter songsMenuListAdapter;
 
     /**
      * Maximum number of songs that server should send to client for get-songs request.
@@ -48,6 +48,8 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.songs_menu_recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+
+        songsMenuListAdapter = new SongsMenuListAdapter(new ArrayList<>(), this.getActivity(), this.addSongClickListener());
 
         recyclerView.setAdapter(songsMenuListAdapter);
 
