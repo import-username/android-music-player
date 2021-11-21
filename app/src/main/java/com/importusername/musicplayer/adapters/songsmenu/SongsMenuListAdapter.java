@@ -16,12 +16,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
+import com.importusername.musicplayer.fragments.SongsMenuFragment;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.interfaces.IThumbnailRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.threads.ThumbnailRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,29 +48,86 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     private View.OnClickListener addButtonListener;
 
+    private final boolean automaticallyGetSongs;
+
+    private final int songsRequestLimit = 12;
+
+    private int songsRequestSkip = 0;
+
+    private int totalRows = 0;
+
     /**
      * Initialize songs menu array
      * @param songsMenuArray Array containing list of user songs.
      */
-    public SongsMenuListAdapter(ArrayList<SongsMenuItem> songsMenuArray, FragmentActivity activity, View.OnClickListener addButtonListener) {
+    public SongsMenuListAdapter(ArrayList<SongsMenuItem> songsMenuArray, FragmentActivity activity, View.OnClickListener addButtonListener, boolean automaticallyGetSongs) {
         this.songsMenuArray.add(null);
         this.songsMenuArray.addAll(songsMenuArray);
         this.activity = activity;
         this.addButtonListener = addButtonListener;
+        this.automaticallyGetSongs = automaticallyGetSongs;
+        this.populateSongsDataset();
     }
 
     /**
      * Adds music item to songs menu array and notifies adapter of data change.
      * @param songsMenuItem Songs menu item object representing song data received from server.
-     * @param fetchThumbnail Boolean value to determine if get request should be sent to receive the song item's thumbnail image.
      * @throws JSONException
      */
-    public void addItem(SongsMenuItem songsMenuItem, boolean fetchThumbnail) throws JSONException {
+    public void addItem(SongsMenuItem songsMenuItem) throws JSONException {
         if (songsMenuItem != null) {
             this.songsMenuArray.add(songsMenuItem);
 
             this.notifyDataSetChanged();
         }
+    }
+
+    private void populateSongsDataset() {
+        if (this.automaticallyGetSongs) {
+            final String url = AppConfig.getProperty("url", this.activity.getApplicationContext()) +
+                    Endpoints.GET_SONGS +
+                    String.format("?limit=%s", this.songsRequestLimit) +
+                    String.format("&skip=%s", this.songsRequestSkip) +
+                    "&includeTotal=true";
+
+            final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
+                    url,
+                    RequestMethod.GET,
+                    this.activity.getApplicationContext(),
+                    true,
+                    this.getSongsRequestAction()
+            );
+
+            requestThread.start();
+        }
+    }
+
+    /**
+     * Adds each song item to the recyclerview adapter's array.
+     */
+    private IHttpRequestAction getSongsRequestAction() {
+        return (status, response, headers) -> {
+            try {
+                final JSONObject responseObject = new JSONObject(response);
+                final JSONArray rowsArray = responseObject.getJSONArray("rows");
+                final String totalRows = responseObject.getString("total");
+
+                SongsMenuListAdapter.this.totalRows = Integer.parseInt(totalRows);
+                SongsMenuListAdapter.this.songsRequestSkip += rowsArray.length();
+
+                SongsMenuListAdapter.this.activity.runOnUiThread(() -> {
+                    for (int i = 0; i < rowsArray.length(); i++) {
+                        try {
+                            SongsMenuListAdapter.this.addItem(new SongsMenuItem(rowsArray.getJSONObject(i)));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (JSONException exc) {
+                exc.printStackTrace();
+            }
+        };
     }
 
     @NonNull
@@ -98,6 +157,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         return viewHolder;
     }
 
+    // TODO - query database for more songs when the last song item of the data set is within view
     @Override
     public void onBindViewHolder(@NonNull @NotNull RecyclerView.ViewHolder holder, int position) {
         switch (this.getItemViewType(position)) {
@@ -109,15 +169,28 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
                 if (songItem.getSongThumbnailId() != null) {
                     ((ViewHolder) holder).setItemThumbnail(songItem.getSongThumbnailId().split("/")[2]);
+                    ((ViewHolder) holder).setIsRecyclable(false);
                 }
 
                 break;
+        }
+
+        // If there are more songs to get from the server, automatically load them when the 10th item has been binded to view.
+        if (this.getSongItemCount() < this.totalRows) {
+            if (position > 0 && position % 10 == 0) {
+                this.populateSongsDataset();
+            }
         }
     }
 
     @Override
     public int getItemCount() {
         return this.songsMenuArray.size();
+    }
+
+
+    public int getSongItemCount() {
+        return this.songsMenuArray.size() - 1;
     }
 
     @Override
