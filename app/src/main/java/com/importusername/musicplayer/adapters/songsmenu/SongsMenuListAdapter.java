@@ -13,6 +13,9 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
@@ -22,6 +25,7 @@ import com.importusername.musicplayer.interfaces.IThumbnailRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.threads.ThumbnailRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
+import com.importusername.musicplayer.util.AppCookie;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -229,13 +233,14 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             thumbnailDefaultIcon.setVisibility(View.GONE);
             thumbnailImageView.setVisibility(View.VISIBLE);
 
-            final ThumbnailRequestThread requestThread = new ThumbnailRequestThread(
+            final GlideUrl glideUrl = new GlideUrl(
                     url,
-                    constraintLayout.getContext(),
-                    this.requestAction(thumbnailDefaultIcon, thumbnailImageView)
+                    new LazyHeaders.Builder().addHeader("Cookie", AppCookie.getAuthCookie(this.fragmentActivity)).build()
             );
 
-            requestThread.start();
+            Glide.with(this.fragmentActivity)
+                    .load(glideUrl)
+                    .into(thumbnailImageView);
         }
 
         private IThumbnailRequestAction requestAction(ImageView defaultImg, ImageView thumbnailImg) {
