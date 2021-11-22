@@ -111,6 +111,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
      */
     private IHttpRequestAction getSongsRequestAction() {
         return (status, response, headers) -> {
+            // TODO - add a conditional for non 2xx status codes
             try {
                 final JSONObject responseObject = new JSONObject(response);
                 final JSONArray rowsArray = responseObject.getJSONArray("rows");
@@ -126,6 +127,14 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    }
+
+                    final RecyclerView recyclerView = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_recyclerview);
+                    final ConstraintLayout constraintLayout = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
+
+                    if (recyclerView.getVisibility() == View.GONE) {
+                        constraintLayout.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
                     }
                 });
             } catch (JSONException exc) {
