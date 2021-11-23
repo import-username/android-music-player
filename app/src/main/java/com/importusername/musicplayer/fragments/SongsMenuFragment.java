@@ -31,11 +31,6 @@ import java.util.ArrayList;
 public class SongsMenuFragment extends Fragment implements IBackPressFragment {
     private SongsMenuListAdapter songsMenuListAdapter;
 
-    /**
-     * Maximum number of songs that server should send to client for get-songs request.
-     */
-    private final int songRequestLimit = 12;
-
     public SongsMenuFragment() {
         super(R.layout.music_player_songs_menu_fragment);
     }
@@ -82,50 +77,13 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
     @Override
     public boolean shouldAllowBackPress() {
         if (getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof IBackPressFragment) {
+            if (((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container)).shouldAllowBackPress()) {
+                this.songsMenuListAdapter.populateSongsDataset();
+            }
+
             return ((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container)).shouldAllowBackPress();
         }
 
         return false;
     }
-
-//    /**
-//     * Sends a get request to server to get an array of json song objects.
-//     */
-//    private void sendSongsRequest() {
-//        final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
-//                AppConfig.getProperty(
-//                        "url", SongsMenuFragment.this.getContext()
-//                ) + Endpoints.GET_SONGS + "?limit=" + SongsMenuFragment.this.songRequestLimit + "&includeTotal=true",
-//                RequestMethod.GET,
-//                SongsMenuFragment.this.getContext(),
-//                true,
-//                SongsMenuFragment.this.getSongsRequestAction()
-//        );
-//
-//        requestThread.start();
-//    }
-//
-//    /**
-//     * Adds each song item to the recyclerview adapter's array.
-//     */
-//    private IHttpRequestAction getSongsRequestAction() {
-//        return (status, response, headers) -> {
-//            try {
-//                final JSONObject responseObject = new JSONObject(response);
-//                final JSONArray rowsArray = responseObject.getJSONArray("rows");
-//
-//                getActivity().runOnUiThread(() -> {
-//                    for (int i = 0; i < rowsArray.length(); i++) {
-//                        try {
-//                            this.songsMenuListAdapter.addItem(new SongsMenuItem(rowsArray.getJSONObject(i)));
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                });
-//            } catch (JSONException exc) {
-//                exc.printStackTrace();
-//            }
-//        };
-//    }
 }

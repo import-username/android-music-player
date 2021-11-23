@@ -86,7 +86,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
-    private void populateSongsDataset() {
+    public void populateSongsDataset() {
         if (this.automaticallyGetSongs) {
             final String url = AppConfig.getProperty("url", this.activity.getApplicationContext()) +
                     Endpoints.GET_SONGS +
