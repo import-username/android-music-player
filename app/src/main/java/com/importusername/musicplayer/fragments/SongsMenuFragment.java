@@ -19,6 +19,7 @@ import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
+import com.importusername.musicplayer.interfaces.ISongItemListener;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
@@ -44,11 +45,37 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
         RecyclerView recyclerView = view.findViewById(R.id.songs_menu_recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
 
-        songsMenuListAdapter = new SongsMenuListAdapter(new ArrayList<>(), this.getActivity(), this.addSongClickListener(), true);
+        songsMenuListAdapter = new SongsMenuListAdapter(
+                new ArrayList<>(),
+                this.getActivity(),
+                this.addSongClickListener(),
+                this.songItemClickListener(),
+                true);
 
         recyclerView.setAdapter(songsMenuListAdapter);
 
         return view;
+    }
+
+    private ISongItemListener songItemClickListener() {
+        return (SongsMenuItem item) -> {
+            final FragmentTransaction fragmentTransaction = SongsMenuFragment.this.getChildFragmentManager().beginTransaction();
+
+            fragmentTransaction.setCustomAnimations(
+                    R.anim.slide_in,
+                    R.anim.slide_out,
+                    R.anim.slide_in,
+                    R.anim.slide_out
+            );
+
+            final SongFragment songFragment = new SongFragment(item);
+
+            fragmentTransaction
+                    .replace(R.id.songs_menu_fragment_container, songFragment, null)
+                    .setReorderingAllowed(true)
+                    .addToBackStack("Song Fragment")
+                    .commit();
+        };
     }
 
     /**
