@@ -195,6 +195,10 @@ public class CreateSongItemMenuFragment extends Fragment {
             final List<String> responseContentType = headers.get("content-type");
 
             if (status == 200) {
+                final SongsMenuFragment songsMenuFragment = ((SongsMenuFragment) getParentFragment().getParentFragment());
+
+                songsMenuFragment.notifySongDataChange();
+
                 // TODO - redirect to corresponding song menu or something
             } else {
                 if (responseContentType != null && CreateSongItemMenuFragment.this.parseHeaderContent(responseContentType.get(0)).contains("application/json")) {

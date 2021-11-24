@@ -86,6 +86,9 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+    /**
+     * Sends a request to get user songs and populates songsMenuArray with song item objects.
+     */
     public void populateSongsDataset() {
         if (this.automaticallyGetSongs) {
             final String url = AppConfig.getProperty("url", this.activity.getApplicationContext()) +
@@ -200,7 +203,6 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
     public int getItemCount() {
         return this.songsMenuArray.size();
     }
-
 
     public int getSongItemCount() {
         return this.songsMenuArray.size() - 1;

@@ -74,11 +74,19 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
         };
     }
 
+    /**
+     * Calls song list adapter's populate dataset method. Intended use for when user performs a crud based
+     * query request for a song item.
+     */
+    public void notifySongDataChange() {
+        this.songsMenuListAdapter.populateSongsDataset();
+    }
+
     @Override
     public boolean shouldAllowBackPress() {
         if (getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof IBackPressFragment) {
             if (((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container)).shouldAllowBackPress()) {
-                this.songsMenuListAdapter.populateSongsDataset();
+//                this.songsMenuListAdapter.populateSongsDataset();
             }
 
             return ((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container)).shouldAllowBackPress();
