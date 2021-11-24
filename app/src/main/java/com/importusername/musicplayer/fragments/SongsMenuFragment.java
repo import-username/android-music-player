@@ -66,29 +66,24 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                     R.anim.slide_out
             );
 
+            final CreateSongMenuFragment createSongMenuFragment = new CreateSongMenuFragment();
+
+            // Repopulate song list adapter's dataset when child fragment emits refresh_dataset event.
+            createSongMenuFragment.setFragmentEventListener("refresh_dataset", (data) -> {
+                SongsMenuFragment.this.songsMenuListAdapter.populateSongsDataset();
+            });
+
             fragmentTransaction
-                    .replace(R.id.songs_menu_fragment_container, CreateSongMenuFragment.class, null)
+                    .replace(R.id.songs_menu_fragment_container, createSongMenuFragment, null)
                     .setReorderingAllowed(true)
                     .addToBackStack("SongsMenuFragment")
                     .commit();
         };
     }
 
-    /**
-     * Calls song list adapter's populate dataset method. Intended use for when user performs a crud based
-     * query request for a song item.
-     */
-    public void notifySongDataChange() {
-        this.songsMenuListAdapter.populateSongsDataset();
-    }
-
     @Override
     public boolean shouldAllowBackPress() {
         if (getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof IBackPressFragment) {
-            if (((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container)).shouldAllowBackPress()) {
-//                this.songsMenuListAdapter.populateSongsDataset();
-            }
-
             return ((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container)).shouldAllowBackPress();
         }
 

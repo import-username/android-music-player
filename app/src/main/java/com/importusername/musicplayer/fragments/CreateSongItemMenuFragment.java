@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CreateSongItemMenuFragment extends Fragment {
+public class CreateSongItemMenuFragment extends EventFragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -195,9 +195,7 @@ public class CreateSongItemMenuFragment extends Fragment {
             final List<String> responseContentType = headers.get("content-type");
 
             if (status == 200) {
-                final SongsMenuFragment songsMenuFragment = ((SongsMenuFragment) getParentFragment().getParentFragment());
-
-                songsMenuFragment.notifySongDataChange();
+                CreateSongItemMenuFragment.this.emitFragmentEvent("refresh_dataset", null);
 
                 // TODO - redirect to corresponding song menu or something
             } else {

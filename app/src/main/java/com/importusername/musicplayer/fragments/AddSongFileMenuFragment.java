@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.InputStream;
 import java.net.URLConnection;
 
-public class AddSongFileMenuFragment extends Fragment {
+public class AddSongFileMenuFragment extends EventFragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -42,6 +42,10 @@ public class AddSongFileMenuFragment extends Fragment {
                             final CreateSongItemMenuFragment createSongItemMenuFragment = new CreateSongItemMenuFragment();
                             Bundle bundle = new Bundle();
                             bundle.putString("song_file_uri", fileUri.toString());
+
+                            createSongItemMenuFragment.setFragmentEventListener("refresh_dataset", (data) -> {
+                                AddSongFileMenuFragment.this.emitFragmentEvent("refresh_dataset", null);
+                            });
 
                             createSongItemMenuFragment.setArguments(bundle);
                             getParentFragmentManager().beginTransaction()
