@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
@@ -21,6 +22,7 @@ import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.fragments.SongsMenuFragment;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
+import com.importusername.musicplayer.interfaces.ISongItemListener;
 import com.importusername.musicplayer.interfaces.IThumbnailRequestAction;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.threads.ThumbnailRequestThread;
@@ -52,6 +54,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     private View.OnClickListener addButtonListener;
 
+    private ISongItemListener songItemClickListener;
+
     private final boolean automaticallyGetSongs;
 
     private final int songsRequestLimit = 12;
@@ -64,11 +68,14 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
      * Initialize songs menu array
      * @param songsMenuArray Array containing list of user songs.
      */
-    public SongsMenuListAdapter(ArrayList<SongsMenuItem> songsMenuArray, FragmentActivity activity, View.OnClickListener addButtonListener, boolean automaticallyGetSongs) {
+    public SongsMenuListAdapter(ArrayList<SongsMenuItem> songsMenuArray,FragmentActivity activity,
+                                View.OnClickListener addButtonListener, ISongItemListener songItemClickListener,
+                                boolean automaticallyGetSongs) {
         this.songsMenuArray.add(null);
         this.songsMenuArray.addAll(songsMenuArray);
         this.activity = activity;
         this.addButtonListener = addButtonListener;
+        this.songItemClickListener = songItemClickListener;
         this.automaticallyGetSongs = automaticallyGetSongs;
         this.populateSongsDataset();
     }
@@ -164,7 +171,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.songs_menu_music_item, parent, false);
 
-                viewHolder = new ViewHolder(view, this.activity);
+                viewHolder = new ViewHolder(view, this.activity, this.songItemClickListener);
                 break;
             default:
                 throw new IllegalStateException("Unexpected view type " + this.getItemViewType(viewType));
@@ -181,6 +188,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             case VIEW_MUSIC_ITEM:
                 final SongsMenuItem songItem = this.songsMenuArray.get(position);
                 ((ViewHolder) holder).setText(songItem.getSongName());
+                ((ViewHolder) holder).setClickListener(songItem);
 
                 if (songItem.getSongThumbnailId() != null) {
                     ((ViewHolder) holder).setItemThumbnail(songItem.getSongThumbnailId().split("/")[2]);
@@ -222,11 +230,14 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         private final ConstraintLayout constraintLayout;
 
-        public ViewHolder(@NonNull @NotNull View itemView, FragmentActivity activity) {
+        private final ISongItemListener clickListener;
+
+        public ViewHolder(@NonNull @NotNull View itemView, FragmentActivity activity, ISongItemListener clickListener) {
             super(itemView);
 
             this.fragmentActivity = activity;
-            constraintLayout = itemView.findViewById(R.id.songs_menu_music_item_container);
+            this.constraintLayout = itemView.findViewById(R.id.songs_menu_music_item_container);
+            this.clickListener = clickListener;
         }
 
         public void setText(String text) {
@@ -267,6 +278,12 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
             thumbnailDefaultIcon.setVisibility(View.VISIBLE);
             thumbnailImageView.setVisibility(View.GONE);
+        }
+
+        public void setClickListener(SongsMenuItem item) {
+            this.constraintLayout.setOnClickListener((View view) -> {
+                ViewHolder.this.clickListener.songItemClickListener(item);
+            });
         }
 
         private IThumbnailRequestAction requestAction(ImageView defaultImg, ImageView thumbnailImg) {
