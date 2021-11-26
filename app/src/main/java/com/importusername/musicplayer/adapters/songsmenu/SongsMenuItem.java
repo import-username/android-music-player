@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.adapters.songsmenu;
 
+import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,6 +10,8 @@ import java.lang.reflect.Field;
  * Data structure representing a song item. Intended to be used with the songs menu list adapter.
  */
 public class SongsMenuItem {
+    private String songId;
+
     private String songName;
 
     private String songFileId;
@@ -42,10 +45,15 @@ public class SongsMenuItem {
         this.setSongThumbnailId(songObject.getString("song_thumbnail_path"));
         this.setSongDescription(songObject.getString("song_description"));
         this.setFavorite(songObject.getString("song_favorite"));
+        this.setSongId(songObject.getString("id"));
     }
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    public void setSongId(String songId) {
+        this.songId = songId;
     }
 
     public void setSongName(String songName) {
@@ -70,6 +78,10 @@ public class SongsMenuItem {
         } else if (songFavorite.equals("false") || songFavorite.equals("f") || songFavorite.equals("FALSE")) {
             this.favorite = false;
         }
+    }
+
+    public String getSongId() {
+        return this.getNullableValue(this.songId);
     }
 
     public String getSongName() {
