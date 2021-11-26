@@ -23,4 +23,8 @@
     <color name="songs_menu_foreground_primary">#222222</color>
     <color name="songs_menu_song_default_icon_background">#3E3E40</color>
     <color name="songs_menu_song_default_icon">#787878</color>
+    <color name="unplayed_media_color">#323232</color>
+    <color name="buffered_media_color">#4C4C4C</color>
+    <color name="media_scrubber_color">#97021D</color>
+    <color name="media_duration_text_color">#b3b3b3</color>
 </resources>
