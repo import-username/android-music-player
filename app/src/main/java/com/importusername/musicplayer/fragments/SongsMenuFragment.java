@@ -28,6 +28,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SongsMenuFragment extends Fragment implements IBackPressFragment {
     private SongsMenuListAdapter songsMenuListAdapter;
@@ -68,8 +69,10 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                     R.anim.slide_out
             );
 
-            final SongFragment songFragment = new SongFragment(item);
+            final List<SongsMenuItem> songsList = SongsMenuFragment.this.songsMenuListAdapter.getSongItems();
+            final SongFragment songFragment = new SongFragment(item, songsList.subList(1, songsList.size()));
 
+            // TODO - next/prev buttons on song item should display correct title, thumbnail, etc.
             fragmentTransaction
                     .replace(R.id.songs_menu_fragment_container, songFragment, null)
                     .setReorderingAllowed(true)

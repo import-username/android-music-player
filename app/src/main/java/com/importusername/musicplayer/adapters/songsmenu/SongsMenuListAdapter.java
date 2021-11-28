@@ -43,6 +43,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private ArrayList<SongsMenuItem> songsMenuArray = new ArrayList<>();
@@ -223,6 +224,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
 
         return 1;
+    }
+
+    public List<SongsMenuItem> getSongItems() {
+        return this.songsMenuArray;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

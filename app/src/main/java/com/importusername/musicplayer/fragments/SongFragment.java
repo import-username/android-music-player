@@ -20,6 +20,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.exoplayer2.*;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MediaSourceFactory;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
@@ -77,10 +79,16 @@ public class SongFragment extends Fragment implements IBackPressFragment {
         this.songsMenuItem = songsMenuItem;
     }
 
-    public SongFragment(List<SongsMenuItem> songsMenuItemList) {
+    /**
+     *
+     * @param startingItem The songmenuitem which should be played with initial priority.
+     * @param songsMenuItemList List of songmenuitem objects to pass into exoplayer playlist.
+     */
+    public SongFragment(SongsMenuItem startingItem, List<SongsMenuItem> songsMenuItemList) {
         super(R.layout.song_menu_layout);
 
         this.songsMenuItemList = songsMenuItemList;
+        this.songsMenuItem = startingItem;
     }
 
     @Nullable
@@ -132,17 +140,23 @@ public class SongFragment extends Fragment implements IBackPressFragment {
         final ExoPlayer exoPlayer = this.service.getExoPlayer();
 
         // TODO - handle non 2xx status codes
-        if (this.songsMenuItem != null) {
+        if (this.songsMenuItemList == null) {
             final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + this.songsMenuItem.getSongId());
 
             MediaItem songItem = MediaItem.fromUri(uri);
 
             exoPlayer.setMediaItem(songItem);
-        } else if (this.songsMenuItemList != null) {
+        } else {
             for (SongsMenuItem item : this.songsMenuItemList) {
-                final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + item.getSongId());
+                if (item != null) {
+                    final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + item.getSongId());
 
-                exoPlayer.addMediaItem(MediaItem.fromUri(uri));
+                    exoPlayer.addMediaItem(MediaItem.fromUri(uri));
+
+                    if (item.equals(this.songsMenuItem)) {
+                        exoPlayer.seekTo(this.songsMenuItemList.indexOf(item), 0);
+                    }
+                }
             }
         }
 
@@ -161,7 +175,7 @@ public class SongFragment extends Fragment implements IBackPressFragment {
             exoPlayer.prepare();
 
             exoPlayer.setPlaybackSpeed(1);
-            exoPlayer.setVolume(0.4f);
+            exoPlayer.setVolume(1f);
             exoPlayer.setPlayWhenReady(true);
         }
     }
