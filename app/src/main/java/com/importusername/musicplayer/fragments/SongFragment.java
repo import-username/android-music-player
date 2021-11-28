@@ -1,7 +1,12 @@
 package com.importusername.musicplayer.fragments;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,24 +20,52 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.exoplayer2.*;
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.ui.PlayerControlView;
-import com.google.android.exoplayer2.ui.StyledPlayerControlView;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
+import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
+import java.util.List;
 
 public class SongFragment extends Fragment implements IBackPressFragment {
-    private ExoPlayer exoPlayer;
-
     private SongsMenuItem songsMenuItem;
+
+    private List<SongsMenuItem> songsMenuItemList;
+
+    private SongItemService service;
+
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            SongFragment.this.service = ((SongItemService.LocalBinder) service).getService();
+
+            final PlayerControlView controlView = getView().findViewById(R.id.player_view);
+
+            controlView.setShowNextButton(true);
+            controlView.setShowPreviousButton(true);
+            controlView.setShowShuffleButton(true);
+
+            // TODO - add both types of infinitely repeating toggle mode
+            controlView.setRepeatToggleModes(RepeatModeUtil.REPEAT_TOGGLE_MODE_ALL);
+
+            controlView.setShowTimeoutMs(0);
+
+            controlView.setPlayer(SongFragment.this.service.getExoPlayer());
+
+            SongFragment.this.addSongItems(true);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            SongFragment.this.service = null;
+        }
+    };
 
     public SongFragment() {
         super(R.layout.song_menu_layout);
@@ -42,6 +75,12 @@ public class SongFragment extends Fragment implements IBackPressFragment {
         super(R.layout.song_menu_layout);
 
         this.songsMenuItem = songsMenuItem;
+    }
+
+    public SongFragment(List<SongsMenuItem> songsMenuItemList) {
+        super(R.layout.song_menu_layout);
+
+        this.songsMenuItemList = songsMenuItemList;
     }
 
     @Nullable
@@ -80,65 +119,80 @@ public class SongFragment extends Fragment implements IBackPressFragment {
             ((TextView) view.findViewById(R.id.song_menu_author_view)).setText(this.songsMenuItem.getAuthor());
         }
 
-        if (exoPlayer == null) {
-            final HashMap<String, String> headers = new HashMap<>();
-            headers.put("Cookie", AppCookie.getAuthCookie(this.getContext()));
-
-            final DefaultHttpDataSource.Factory defaultHttpDataSource = new DefaultHttpDataSource.Factory();
-            defaultHttpDataSource.setDefaultRequestProperties(headers);
-
-            final DefaultRenderersFactory defaultRenderersFactory = new DefaultRenderersFactory(this.getContext());
-            defaultRenderersFactory.setEnableAudioTrackPlaybackParams(true);
-
-            final DefaultLoadControl loadControl = new DefaultLoadControl();
-            loadControl.onPrepared();
-
-            exoPlayer = new ExoPlayer.Builder(this.getContext())
-                .setMediaSourceFactory(new DefaultMediaSourceFactory(defaultHttpDataSource))
-                .build();
-
-            final PlayerControlView controlView = ((PlayerControlView) view.findViewById(R.id.player_view));
-
-            controlView.setShowNextButton(true);
-            controlView.setShowPreviousButton(true);
-            controlView.setShowShuffleButton(true);
-//            controlView.setRepeatToggleModes();
-
-            controlView.setShowTimeoutMs(0);
-
-            ((PlayerControlView) view.findViewById(R.id.player_view)).setPlayer(exoPlayer);
-        }
-
-        this.playAudio();
+        this.bindSongItemService();
 
         return view;
     }
 
-    private void playAudio() {
+    /**
+     * Adds single song item/iteratively add from list depending on value passed in constructor.
+     * @param autoPlayAudio Boolean value to determine if audio should be played when all media items have been added.
+     */
+    private void addSongItems(boolean autoPlayAudio) {
+        final ExoPlayer exoPlayer = this.service.getExoPlayer();
+
         // TODO - handle non 2xx status codes
-        final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + this.songsMenuItem.getSongId());
+        if (this.songsMenuItem != null) {
+            final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + this.songsMenuItem.getSongId());
 
-        MediaItem songItem = MediaItem.fromUri(uri);
+            MediaItem songItem = MediaItem.fromUri(uri);
 
-        exoPlayer.setMediaItem(songItem);
+            exoPlayer.setMediaItem(songItem);
+        } else if (this.songsMenuItemList != null) {
+            for (SongsMenuItem item : this.songsMenuItemList) {
+                final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + item.getSongId());
 
-        if (!this.exoPlayer.isPlaying()) {
+                exoPlayer.addMediaItem(MediaItem.fromUri(uri));
+            }
+        }
+
+        if (autoPlayAudio) {
+            this.playAudio();
+        }
+    }
+
+    /**
+     * Prepares exoplayer object and plays when ready.
+     */
+    private void playAudio() {
+        final ExoPlayer exoPlayer = this.service.getExoPlayer();
+
+        if (!exoPlayer.isPlaying()) {
             exoPlayer.prepare();
 
             exoPlayer.setPlaybackSpeed(1);
             exoPlayer.setVolume(0.4f);
-            exoPlayer.play();
+            exoPlayer.setPlayWhenReady(true);
         }
+    }
+
+    /**
+     * Bind a songitemservice instance to the fragment's enclosing activity component.
+     */
+    private void bindSongItemService() {
+        final Intent songItemService = new Intent(getContext(), SongItemService.class);
+
+        getContext().bindService(songItemService, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * Unbind service from the fragment's enclosing activity.
+     */
+    private void unbindSongItemService() {
+        // TODO - stop exoplayer audio if user settings states not to continue playing
+        if (this.service.getExoPlayer() != null) {
+            this.service.getExoPlayer().stop();
+            this.service.getExoPlayer().release();
+        }
+
+        this.getContext().unbindService(this.serviceConnection);
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        if (this.exoPlayer != null) {
-            this.exoPlayer.stop();
-            this.exoPlayer.release();
-        }
+        this.unbindSongItemService();
     }
 
     @Override
