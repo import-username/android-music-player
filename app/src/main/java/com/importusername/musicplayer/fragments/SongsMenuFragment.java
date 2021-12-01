@@ -1,6 +1,13 @@
 package com.importusername.musicplayer.fragments;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,14 +19,15 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
-import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.interfaces.ISongItemListener;
+import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +40,22 @@ import java.util.List;
 
 public class SongsMenuFragment extends Fragment implements IBackPressFragment {
     private SongsMenuListAdapter songsMenuListAdapter;
+
+    private SongItemService service;
+
+    private Handler handler;
+
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            SongsMenuFragment.this.service = ((SongItemService.LocalBinder) service).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            SongsMenuFragment.this.service = null;
+        }
+    };
 
     public SongsMenuFragment() {
         super(R.layout.music_player_songs_menu_fragment);
@@ -55,11 +79,18 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
 
         recyclerView.setAdapter(songsMenuListAdapter);
 
+        handler = new Handler(Looper.getMainLooper());
+
+        this.bindSongItemService();
+
         return view;
     }
 
     private ISongItemListener songItemClickListener() {
         return (SongsMenuItem item) -> {
+            final String url = AppConfig.getProperty("url", this.getContext())
+                    + Endpoints.GET_SONGS;
+
             final FragmentTransaction fragmentTransaction = SongsMenuFragment.this.getChildFragmentManager().beginTransaction();
 
             fragmentTransaction.setCustomAnimations(
@@ -69,15 +100,53 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                     R.anim.slide_out
             );
 
-            final List<SongsMenuItem> songsList = SongsMenuFragment.this.songsMenuListAdapter.getSongItems();
-            final SongFragment songFragment = new SongFragment(item, songsList.subList(1, songsList.size()));
+            final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
+                    url,
+                    RequestMethod.GET,
+                    this.getContext(),
+                    true,
+                    (status, response, headers) -> {
+                        if (status > 199 && status < 300) {
+                            try {
+                                List<SongsMenuItem> songItems = new ArrayList<>();
 
-            // TODO - next/prev buttons on song item should display correct title, thumbnail, etc.
-            fragmentTransaction
-                    .replace(R.id.songs_menu_fragment_container, songFragment, null)
-                    .setReorderingAllowed(true)
-                    .addToBackStack("Song Fragment")
-                    .commit();
+                                final JSONArray rows = new JSONObject(response).getJSONArray("rows");
+
+                                for (int i = 0; i < rows.length(); i++) {
+                                    songItems.add(new SongsMenuItem(rows.getJSONObject(i)));
+                                }
+
+                                // TODO - get setting pref to determine if all songs should be played
+                                final SongFragment songFragment = new SongFragment(
+                                        this.service.getExoPlayer(),
+                                        item,
+                                        songItems,
+                                        handler,
+                                        true
+                                );
+
+                                songFragment.setFragmentEventListener("stopped_fragment", (listener) -> {
+                                    this.service.getExoPlayer().stop();
+                                    this.service.getExoPlayer().clearMediaItems();
+                                    
+                                    if (listener instanceof Player.Listener) {
+                                        this.service.getExoPlayer().removeListener((Player.Listener) listener);
+                                    }
+                                });
+
+                                fragmentTransaction
+                                        .replace(R.id.songs_menu_fragment_container, songFragment, null)
+                                        .setReorderingAllowed(true)
+                                        .addToBackStack("Song Fragment")
+                                        .commit();
+                            } catch (JSONException exc) {
+                                exc.printStackTrace();
+                            }
+                        }
+                    }
+            );
+
+            requestThread.start();
         };
     }
 
@@ -109,6 +178,35 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                     .addToBackStack("SongsMenuFragment")
                     .commit();
         };
+    }
+
+    /**
+     * Bind a songitemservice instance to the fragment's enclosing activity component.
+     */
+    private void bindSongItemService() {
+        final Intent songItemService = new Intent(getContext(), SongItemService.class);
+
+        getContext().bindService(songItemService, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * Unbind service from the fragment's enclosing activity.
+     */
+    private void unbindSongItemService() {
+        // TODO - stop exoplayer audio if user settings states not to continue playing
+        if (this.service.getExoPlayer() != null) {
+            this.service.getExoPlayer().stop();
+            this.service.getExoPlayer().release();
+        }
+
+        this.getContext().unbindService(this.serviceConnection);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        this.unbindSongItemService();
     }
 
     @Override
