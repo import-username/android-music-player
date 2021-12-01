@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,68 +28,63 @@ import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
+import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.services.SongItemService;
+import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 
-public class SongFragment extends Fragment implements IBackPressFragment {
-    private SongsMenuItem songsMenuItem;
+public class SongFragment extends EventFragment implements IBackPressFragment {
+    private SongsMenuItem initialSongItem;
 
-    private List<SongsMenuItem> songsMenuItemList;
+    private List<SongsMenuItem> songMenuItemList;
 
-    private SongItemService service;
+    private ExoPlayer exoPlayer;
 
-    private final ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            SongFragment.this.service = ((SongItemService.LocalBinder) service).getService();
+    private Handler handler;
 
-            final PlayerControlView controlView = getView().findViewById(R.id.player_view);
+    private boolean playAllSongs = false;
 
-            controlView.setShowNextButton(true);
-            controlView.setShowPreviousButton(true);
-            controlView.setShowShuffleButton(true);
-
-            // TODO - add both types of infinitely repeating toggle mode
-            controlView.setRepeatToggleModes(RepeatModeUtil.REPEAT_TOGGLE_MODE_ALL);
-
-            controlView.setShowTimeoutMs(0);
-
-            controlView.setPlayer(SongFragment.this.service.getExoPlayer());
-
-            SongFragment.this.addSongItems(true);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            SongFragment.this.service = null;
-        }
-    };
+    private Player.Listener playerListener;
 
     public SongFragment() {
         super(R.layout.song_menu_layout);
     }
 
-    public SongFragment(SongsMenuItem songsMenuItem) {
+    /**
+     * Performs the same as {@link SongFragment#SongFragment(ExoPlayer, SongsMenuItem, List, Handler, boolean)}
+     * but does not include a list of items to be played after the initial song item.
+     */
+    public SongFragment(ExoPlayer exoPlayer, SongsMenuItem initialSongItem, Handler handler) {
         super(R.layout.song_menu_layout);
 
-        this.songsMenuItem = songsMenuItem;
+        this.exoPlayer = exoPlayer;
+        this.initialSongItem = initialSongItem;
+        this.handler = handler;
     }
 
     /**
-     *
-     * @param startingItem The songmenuitem which should be played with initial priority.
-     * @param songsMenuItemList List of songmenuitem objects to pass into exoplayer playlist.
+     * @param exoPlayer Exoplayer object
+     * @param initialSongItem The song item that the player should initially start playing.
+     * @param songMenuItemList List of song items to play. Initial song item should be included in this list.
+     * @param handler A handler object from the exoplayer's enclosing thread. Used to interact with exoplayer.
+     * @param playAllSongs Boolean value to determine if all songs in the list should be added to exoplayer playlist.
      */
-    public SongFragment(SongsMenuItem startingItem, List<SongsMenuItem> songsMenuItemList) {
+    public SongFragment(ExoPlayer exoPlayer, SongsMenuItem initialSongItem, List<SongsMenuItem> songMenuItemList, Handler handler, boolean playAllSongs) {
         super(R.layout.song_menu_layout);
 
-        this.songsMenuItemList = songsMenuItemList;
-        this.songsMenuItem = startingItem;
+        this.exoPlayer = exoPlayer;
+        this.initialSongItem = initialSongItem;
+        this.songMenuItemList = songMenuItemList;
+        this.handler = handler;
+        this.playAllSongs = playAllSongs;
     }
 
     @Nullable
@@ -100,12 +96,12 @@ public class SongFragment extends Fragment implements IBackPressFragment {
 
         final View view = inflater.inflate(R.layout.song_menu_layout, container, false);
 
-        ((TextView) view.findViewById(R.id.song_menu_title_view)).setText(this.songsMenuItem.getSongName());
+        ((TextView) view.findViewById(R.id.song_menu_title_view)).setText(this.initialSongItem.getSongName());
 
-        if (this.songsMenuItem.getSongThumbnailId() != null) {
+        if (this.initialSongItem.getSongThumbnailId() != null) {
             final String url = AppConfig.getProperty("url", view.getContext())
                     + Endpoints.GET_THUMBNAIL + "/"
-                    + this.songsMenuItem.getSongThumbnailId().split("/")[2];
+                    + this.initialSongItem.getSongThumbnailId().split("/")[2];
 
             final GlideUrl glideUrl = new GlideUrl(
                     url,
@@ -123,90 +119,146 @@ public class SongFragment extends Fragment implements IBackPressFragment {
                     .into(thumbnail);
         }
 
-        if (this.songsMenuItem.getAuthor() != null) {
-            ((TextView) view.findViewById(R.id.song_menu_author_view)).setText(this.songsMenuItem.getAuthor());
+        if (this.initialSongItem.getAuthor() != null) {
+            ((TextView) view.findViewById(R.id.song_menu_author_view)).setText(this.initialSongItem.getAuthor());
         }
 
-        this.bindSongItemService();
+        final PlayerControlView controlView = view.findViewById(R.id.player_view);
+
+        controlView.setShowNextButton(true);
+        controlView.setShowPreviousButton(true);
+        controlView.setShowShuffleButton(true);
+
+        // TODO - add both types of infinitely repeating toggle mode
+        controlView.setRepeatToggleModes(RepeatModeUtil.REPEAT_TOGGLE_MODE_ALL);
+
+        controlView.setShowTimeoutMs(0);
+
+        controlView.setPlayer(SongFragment.this.exoPlayer);
+
+        this.playerListener = new Player.Listener() {
+            @Override
+            public void onPositionDiscontinuity(Player.PositionInfo oldPosition,
+                                                Player.PositionInfo newPosition,
+                                                int reason) {
+                if (newPosition.mediaItemIndex != oldPosition.mediaItemIndex) {
+                    SongFragment.this.changeSongLayoutInfo(SongFragment.this.songMenuItemList.get(newPosition.mediaItemIndex));
+                }
+            }
+        };
+
+        exoPlayer.addListener(this.playerListener);
+
+        this.addSongItems();
 
         return view;
     }
 
     /**
      * Adds single song item/iteratively add from list depending on value passed in constructor.
-     * @param autoPlayAudio Boolean value to determine if audio should be played when all media items have been added.
      */
-    private void addSongItems(boolean autoPlayAudio) {
-        final ExoPlayer exoPlayer = this.service.getExoPlayer();
-
+    private void addSongItems() {
         // TODO - handle non 2xx status codes
-        if (this.songsMenuItemList == null) {
-            final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + this.songsMenuItem.getSongId());
+        if (this.isValidSongItemList() && this.playAllSongs) {
+            for (SongsMenuItem item : this.songMenuItemList) {
+                this.handler.post(() -> {
+                    this.exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(
+                            AppConfig.getProperty("url", this.getContext())
+                                    + Endpoints.SONG
+                                    + "/"
+                                    + item.getSongId()
+                    )));
 
-            MediaItem songItem = MediaItem.fromUri(uri);
-
-            exoPlayer.setMediaItem(songItem);
-        } else {
-            for (SongsMenuItem item : this.songsMenuItemList) {
-                if (item != null) {
-                    final Uri uri = Uri.parse(AppConfig.getProperty("url", this.getContext()) + "/song/" + item.getSongId());
-
-                    exoPlayer.addMediaItem(MediaItem.fromUri(uri));
-
-                    if (item.equals(this.songsMenuItem)) {
-                        exoPlayer.seekTo(this.songsMenuItemList.indexOf(item), 0);
+                    if (item.getSongId().equals(this.initialSongItem.getSongId())) {
+                        this.exoPlayer.seekTo(this.songMenuItemList.indexOf(item), 0);
                     }
-                }
+
+                    this.playAudio();
+                });
             }
-        }
+        } else {
+            this.handler.post(() -> {
+                this.exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(
+                        AppConfig.getProperty("url", this.getContext())
+                        + Endpoints.SONG
+                        + "/"
+                        + this.initialSongItem.getSongId()
+                )));
 
-        if (autoPlayAudio) {
-            this.playAudio();
-        }
-    }
-
-    /**
-     * Prepares exoplayer object and plays when ready.
-     */
-    private void playAudio() {
-        final ExoPlayer exoPlayer = this.service.getExoPlayer();
-
-        if (!exoPlayer.isPlaying()) {
-            exoPlayer.prepare();
-
-            exoPlayer.setPlaybackSpeed(1);
-            exoPlayer.setVolume(1f);
-            exoPlayer.setPlayWhenReady(true);
+                this.playAudio();
+            });
         }
     }
 
     /**
-     * Bind a songitemservice instance to the fragment's enclosing activity component.
+     * If player is not playing, prepares exoplayer and begins playback when ready.
      */
-    private void bindSongItemService() {
-        final Intent songItemService = new Intent(getContext(), SongItemService.class);
+    public void playAudio() {
+        if (!this.exoPlayer.isPlaying()) {
+            this.exoPlayer.prepare();
 
-        getContext().bindService(songItemService, serviceConnection, Context.BIND_AUTO_CREATE);
+            this.exoPlayer.setVolume(1f);
+            this.exoPlayer.setPlayWhenReady(true);
+        }
     }
 
     /**
-     * Unbind service from the fragment's enclosing activity.
+     * Changes the appropriate views to detail the provided song item.
+     * @param item SongsMenuItem object with data that should be displayed.
      */
-    private void unbindSongItemService() {
-        // TODO - stop exoplayer audio if user settings states not to continue playing
-        if (this.service.getExoPlayer() != null) {
-            this.service.getExoPlayer().stop();
-            this.service.getExoPlayer().release();
+    private void changeSongLayoutInfo(SongsMenuItem item) {
+        ((TextView) getView().findViewById(R.id.song_menu_title_view)).setText(item.getSongName());
+
+        if (item.getSongThumbnailId() != null) {
+            final String url = AppConfig.getProperty("url", getView().getContext())
+                    + Endpoints.GET_THUMBNAIL + "/"
+                    + item.getSongThumbnailId().split("/")[2];
+
+            final GlideUrl glideUrl = new GlideUrl(
+                    url,
+                    new LazyHeaders.Builder().addHeader("Cookie", AppCookie.getAuthCookie(this.getActivity())).build()
+            );
+
+            final ImageView thumbnail = getView().findViewById(R.id.song_menu_image_custom);
+            final ImageView defaultThumbnail = getView().findViewById(R.id.song_menu_image_default);
+
+            defaultThumbnail.setVisibility(View.GONE);
+            thumbnail.setVisibility(View.VISIBLE);
+
+            Glide.with(this.getActivity())
+                    .load(glideUrl)
+                    .into(thumbnail);
+        } else {
+            final ImageView thumbnail = getView().findViewById(R.id.song_menu_image_custom);
+            final ImageView defaultThumbnail = getView().findViewById(R.id.song_menu_image_default);
+
+            Glide.with(this.getActivity())
+                    .clear(thumbnail);
+
+            defaultThumbnail.setVisibility(View.VISIBLE);
+            thumbnail.setVisibility(View.GONE);
+
         }
 
-        this.getContext().unbindService(this.serviceConnection);
+        if (item.getAuthor() != null) {
+            ((TextView) getView().findViewById(R.id.song_menu_author_view)).setText(item.getAuthor());
+        }
+    }
+
+    /**
+     * Checks whether the constructor's song item list's contents are valid.
+     * @return True/false
+     */
+    private boolean isValidSongItemList() {
+        return this.songMenuItemList != null && this.songMenuItemList.size() > 0;
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        this.unbindSongItemService();
+        // Emit a stopped_fragment event to notify parent fragment that player should be stopped.
+        this.emitFragmentEvent("stopped_fragment", this.playerListener);
     }
 
     @Override
