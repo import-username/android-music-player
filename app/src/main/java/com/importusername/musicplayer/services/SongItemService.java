@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.services;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
@@ -30,6 +31,11 @@ public class SongItemService extends Service {
 
     private static int NOTIFICATION_ID = 1234;
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_NOT_STICKY;
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -42,13 +48,7 @@ public class SongItemService extends Service {
 
         this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        // TODO - update notification song name when a new song plays
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this)
-                .setOngoing(true)
-                .setContentText("Playing (insert song name here)")
-                .setSmallIcon(R.drawable.outline_music_note_24);
-
-        this.notificationManager.notify(NOTIFICATION_ID, notification.build());
+        this.displayNotification("Nothing's playing", "...");
 
         if (this.exoPlayer == null) {
             final HashMap<String, String> headers = new HashMap<>();
@@ -65,6 +65,54 @@ public class SongItemService extends Service {
 
     public ExoPlayer getExoPlayer() {
         return this.exoPlayer;
+    }
+
+    public void playAudio() {
+        if (!this.exoPlayer.isPlaying()) {
+            this.exoPlayer.prepare();
+
+            this.exoPlayer.setVolume(1f);
+            this.exoPlayer.setPlayWhenReady(true);
+        }
+    }
+
+    public void pauseAudio() {
+        if (this.exoPlayer.isPlaying()) {
+            this.exoPlayer.pause();
+        }
+    }
+
+    public void stopPlayer() {
+        this.exoPlayer.stop();
+        this.exoPlayer.clearMediaItems();
+    }
+
+    public void stopPlayer(Player.Listener listenerToRemove) {
+        this.exoPlayer.stop();
+        this.exoPlayer.clearMediaItems();
+
+        this.exoPlayer.removeListener(listenerToRemove);
+
+    }
+
+    public void releasePlayer() {
+        this.exoPlayer.stop();
+        this.exoPlayer.release();
+    }
+
+    public void displayNotification(String title, String contentText) {
+        this.notificationManager.cancel(NOTIFICATION_ID);
+
+        // TODO - update notification song name when a new song plays
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setOngoing(true)
+                .setContentTitle(title)
+                .setContentText(contentText)
+                .setSmallIcon(R.drawable.outline_music_note_24);
+
+        Notification notification = notificationBuilder.build();
+
+        this.notificationManager.notify(NOTIFICATION_ID, notification);
     }
 
     @Override

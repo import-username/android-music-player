@@ -46,11 +46,9 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
     private List<SongsMenuItem> songMenuItemList;
 
-    private ExoPlayer exoPlayer;
-
-    private Handler handler;
-
     private boolean playAllSongs = false;
+
+    private SongItemService service;
 
     private Player.Listener playerListener;
 
@@ -59,32 +57,28 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
     }
 
     /**
-     * Performs the same as {@link SongFragment#SongFragment(ExoPlayer, SongsMenuItem, List, Handler, boolean)}
+     * Performs the same as {@link SongFragment#SongFragment(SongsMenuItem, List, SongItemService, boolean)}
      * but does not include a list of items to be played after the initial song item.
      */
-    public SongFragment(ExoPlayer exoPlayer, SongsMenuItem initialSongItem, Handler handler) {
+    public SongFragment(SongsMenuItem initialSongItem, SongItemService service) {
         super(R.layout.song_menu_layout);
 
-        this.exoPlayer = exoPlayer;
         this.initialSongItem = initialSongItem;
-        this.handler = handler;
+        this.service = service;
     }
 
     /**
-     * @param exoPlayer Exoplayer object
      * @param initialSongItem The song item that the player should initially start playing.
      * @param songMenuItemList List of song items to play. Initial song item should be included in this list.
-     * @param handler A handler object from the exoplayer's enclosing thread. Used to interact with exoplayer.
      * @param playAllSongs Boolean value to determine if all songs in the list should be added to exoplayer playlist.
      */
-    public SongFragment(ExoPlayer exoPlayer, SongsMenuItem initialSongItem, List<SongsMenuItem> songMenuItemList, Handler handler, boolean playAllSongs) {
+    public SongFragment(SongsMenuItem initialSongItem, List<SongsMenuItem> songMenuItemList, SongItemService service, boolean playAllSongs) {
         super(R.layout.song_menu_layout);
 
-        this.exoPlayer = exoPlayer;
         this.initialSongItem = initialSongItem;
         this.songMenuItemList = songMenuItemList;
-        this.handler = handler;
         this.playAllSongs = playAllSongs;
+        this.service = service;
     }
 
     @Nullable
@@ -134,8 +128,9 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
         controlView.setShowTimeoutMs(0);
 
-        controlView.setPlayer(SongFragment.this.exoPlayer);
+        controlView.setPlayer(this.service.getExoPlayer());
 
+        // TODO - change service notification title/content when song changes
         this.playerListener = new Player.Listener() {
             @Override
             public void onPositionDiscontinuity(Player.PositionInfo oldPosition,
@@ -147,7 +142,7 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
             }
         };
 
-        exoPlayer.addListener(this.playerListener);
+        this.service.getExoPlayer().addListener(this.playerListener);
 
         this.addSongItems();
 
@@ -161,32 +156,28 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
         // TODO - handle non 2xx status codes
         if (this.isValidSongItemList() && this.playAllSongs) {
             for (SongsMenuItem item : this.songMenuItemList) {
-                this.handler.post(() -> {
-                    this.exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(
-                            AppConfig.getProperty("url", this.getContext())
-                                    + Endpoints.SONG
-                                    + "/"
-                                    + item.getSongId()
-                    )));
-
-                    if (item.getSongId().equals(this.initialSongItem.getSongId())) {
-                        this.exoPlayer.seekTo(this.songMenuItemList.indexOf(item), 0);
-                    }
-
-                    this.playAudio();
-                });
-            }
-        } else {
-            this.handler.post(() -> {
-                this.exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(
+                this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
                         AppConfig.getProperty("url", this.getContext())
-                        + Endpoints.SONG
-                        + "/"
-                        + this.initialSongItem.getSongId()
+                                + Endpoints.SONG
+                                + "/"
+                                + item.getSongId()
                 )));
 
+                if (item.getSongId().equals(this.initialSongItem.getSongId())) {
+                    this.service.getExoPlayer().seekTo(this.songMenuItemList.indexOf(item), 0);
+                }
+
                 this.playAudio();
-            });
+            }
+        } else {
+            this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
+                    AppConfig.getProperty("url", this.getContext())
+                    + Endpoints.SONG
+                    + "/"
+                    + this.initialSongItem.getSongId()
+            )));
+
+            this.service.playAudio();
         }
     }
 
@@ -194,11 +185,11 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
      * If player is not playing, prepares exoplayer and begins playback when ready.
      */
     public void playAudio() {
-        if (!this.exoPlayer.isPlaying()) {
-            this.exoPlayer.prepare();
+        if (!this.service.getExoPlayer().isPlaying()) {
+            this.service.getExoPlayer().prepare();
 
-            this.exoPlayer.setVolume(1f);
-            this.exoPlayer.setPlayWhenReady(true);
+            this.service.getExoPlayer().setVolume(1f);
+            this.service.getExoPlayer().setPlayWhenReady(true);
         }
     }
 
@@ -207,41 +198,42 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
      * @param item SongsMenuItem object with data that should be displayed.
      */
     private void changeSongLayoutInfo(SongsMenuItem item) {
-        ((TextView) getView().findViewById(R.id.song_menu_title_view)).setText(item.getSongName());
+        if (this.getView() != null) {
+            ((TextView) getView().findViewById(R.id.song_menu_title_view)).setText(item.getSongName());
 
-        if (item.getSongThumbnailId() != null) {
-            final String url = AppConfig.getProperty("url", getView().getContext())
-                    + Endpoints.GET_THUMBNAIL + "/"
-                    + item.getSongThumbnailId().split("/")[2];
+            if (item.getSongThumbnailId() != null) {
+                final String url = AppConfig.getProperty("url", getView().getContext())
+                        + Endpoints.GET_THUMBNAIL + "/"
+                        + item.getSongThumbnailId().split("/")[2];
 
-            final GlideUrl glideUrl = new GlideUrl(
-                    url,
-                    new LazyHeaders.Builder().addHeader("Cookie", AppCookie.getAuthCookie(this.getActivity())).build()
-            );
+                final GlideUrl glideUrl = new GlideUrl(
+                        url,
+                        new LazyHeaders.Builder().addHeader("Cookie", AppCookie.getAuthCookie(this.getActivity())).build()
+                );
 
-            final ImageView thumbnail = getView().findViewById(R.id.song_menu_image_custom);
-            final ImageView defaultThumbnail = getView().findViewById(R.id.song_menu_image_default);
+                final ImageView thumbnail = getView().findViewById(R.id.song_menu_image_custom);
+                final ImageView defaultThumbnail = getView().findViewById(R.id.song_menu_image_default);
 
-            defaultThumbnail.setVisibility(View.GONE);
-            thumbnail.setVisibility(View.VISIBLE);
+                defaultThumbnail.setVisibility(View.GONE);
+                thumbnail.setVisibility(View.VISIBLE);
 
-            Glide.with(this.getActivity())
-                    .load(glideUrl)
-                    .into(thumbnail);
-        } else {
-            final ImageView thumbnail = getView().findViewById(R.id.song_menu_image_custom);
-            final ImageView defaultThumbnail = getView().findViewById(R.id.song_menu_image_default);
+                Glide.with(this.getActivity())
+                        .load(glideUrl)
+                        .into(thumbnail);
+            } else {
+                final ImageView thumbnail = getView().findViewById(R.id.song_menu_image_custom);
+                final ImageView defaultThumbnail = getView().findViewById(R.id.song_menu_image_default);
 
-            Glide.with(this.getActivity())
-                    .clear(thumbnail);
+                Glide.with(this.getActivity())
+                        .clear(thumbnail);
 
-            defaultThumbnail.setVisibility(View.VISIBLE);
-            thumbnail.setVisibility(View.GONE);
+                defaultThumbnail.setVisibility(View.VISIBLE);
+                thumbnail.setVisibility(View.GONE);
+            }
 
-        }
-
-        if (item.getAuthor() != null) {
-            ((TextView) getView().findViewById(R.id.song_menu_author_view)).setText(item.getAuthor());
+            if (item.getAuthor() != null) {
+                ((TextView) getView().findViewById(R.id.song_menu_author_view)).setText(item.getAuthor());
+            }
         }
     }
 

@@ -43,22 +43,14 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
 
     private SongItemService service;
 
-    private Handler handler;
-
-    private final ServiceConnection serviceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            SongsMenuFragment.this.service = ((SongItemService.LocalBinder) service).getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            SongsMenuFragment.this.service = null;
-        }
-    };
-
     public SongsMenuFragment() {
         super(R.layout.music_player_songs_menu_fragment);
+    }
+
+    public SongsMenuFragment(SongItemService service) {
+        super(R.layout.music_player_songs_menu_fragment);
+
+        this.service = service;
     }
 
     @Nullable
@@ -78,10 +70,6 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                 true);
 
         recyclerView.setAdapter(songsMenuListAdapter);
-
-        handler = new Handler(Looper.getMainLooper());
-
-        this.bindSongItemService();
 
         return view;
     }
@@ -116,22 +104,16 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                                     songItems.add(new SongsMenuItem(rows.getJSONObject(i)));
                                 }
 
-                                // TODO - get setting pref to determine if all songs should be played
                                 final SongFragment songFragment = new SongFragment(
-                                        this.service.getExoPlayer(),
                                         item,
                                         songItems,
-                                        handler,
+                                        this.service,
                                         true
                                 );
 
                                 songFragment.setFragmentEventListener("stopped_fragment", (listener) -> {
-                                    this.service.getExoPlayer().stop();
-                                    this.service.getExoPlayer().clearMediaItems();
-                                    
-                                    if (listener instanceof Player.Listener) {
-                                        this.service.getExoPlayer().removeListener((Player.Listener) listener);
-                                    }
+                                    // TODO - check user setting pref to determine if music should continue playing through bottom panel
+                                    SongsMenuFragment.this.service.stopPlayer((Player.Listener) listener);
                                 });
 
                                 fragmentTransaction
@@ -178,35 +160,6 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                     .addToBackStack("SongsMenuFragment")
                     .commit();
         };
-    }
-
-    /**
-     * Bind a songitemservice instance to the fragment's enclosing activity component.
-     */
-    private void bindSongItemService() {
-        final Intent songItemService = new Intent(getContext(), SongItemService.class);
-
-        getContext().bindService(songItemService, serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    /**
-     * Unbind service from the fragment's enclosing activity.
-     */
-    private void unbindSongItemService() {
-        // TODO - stop exoplayer audio if user settings states not to continue playing
-        if (this.service.getExoPlayer() != null) {
-            this.service.getExoPlayer().stop();
-            this.service.getExoPlayer().release();
-        }
-
-        this.getContext().unbindService(this.serviceConnection);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        this.unbindSongItemService();
     }
 
     @Override
