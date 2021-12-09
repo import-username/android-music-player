@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="ToolbarIconColor" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-        <item name="colorControlNormal">#DB1D40</item>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <style name="SettingsMenuToolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:tint">@color/grey</item>
     </style>
 </resources>

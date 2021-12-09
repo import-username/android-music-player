@@ -27,4 +27,5 @@
     <color name="buffered_media_color">#4C4C4C</color>
     <color name="media_scrubber_color">#97021D</color>
     <color name="media_duration_text_color">#b3b3b3</color>
+    <color name="settings_menu_button_border">#3C3C3C</color>
 </resources>

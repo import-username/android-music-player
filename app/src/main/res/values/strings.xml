@@ -33,4 +33,9 @@
     <string name="create_song_item_author_hint"><font color="#DB1D40">AUTHOR</font> NAME</string>
     <string name="create_song_item_submit_button_text">CREATE SONG</string>
     <string name="now_playing_text">Now playing</string>
+    <string name="settings_menu_header_text">Settings</string>
+    <string name="account_settings_title">Account</string>
+    <string name="account_settings_email_title">Email</string>
+    <string name="account_settings_edit_button_text">Edit Account</string>
+    <string name="account_settings_toolbar">Account Settings</string>
 </resources>
