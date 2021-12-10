@@ -179,6 +179,8 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
             this.service.playAudio();
         }
+
+        this.displayNotification(this.initialSongItem.getSongName());
     }
 
     /**
@@ -234,7 +236,21 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
             if (item.getAuthor() != null) {
                 ((TextView) getView().findViewById(R.id.song_menu_author_view)).setText(item.getAuthor());
             }
+
+            this.displayNotification(item.getSongName());
         }
+    }
+
+    private void displayNotification(String name) {
+        final int notifNameLimit = 30;
+
+        String songNotifName = name;
+
+        if (songNotifName.length() > notifNameLimit) {
+            songNotifName = songNotifName.substring(0, notifNameLimit) + "...";
+        }
+
+        this.service.displayNotification("Now playing", songNotifName);
     }
 
     /**

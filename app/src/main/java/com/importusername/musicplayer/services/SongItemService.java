@@ -101,8 +101,6 @@ public class SongItemService extends Service {
     }
 
     public void displayNotification(String title, String contentText) {
-        this.notificationManager.cancel(NOTIFICATION_ID);
-
         // TODO - update notification song name when a new song plays
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setOngoing(true)
