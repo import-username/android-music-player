@@ -26,6 +26,8 @@ public class SettingsMenuFragment extends Fragment implements IBackPressFragment
 
         view.findViewById(R.id.settings_menu_account_container).setOnClickListener(this.settingsButtonListener(SettingsMenuButtons.ACCOUNT));
 
+        view.findViewById(R.id.settings_menu_app_container).setOnClickListener(this.settingsButtonListener(SettingsMenuButtons.APP));
+
         return view;
     }
 
@@ -33,8 +35,6 @@ public class SettingsMenuFragment extends Fragment implements IBackPressFragment
      * Displays corresponding settings fragment.
      */
     private View.OnClickListener settingsButtonListener(SettingsMenuButtons name) {
-
-
         return (view) -> {
             switch (name) {
                 case ACCOUNT:
@@ -42,6 +42,8 @@ public class SettingsMenuFragment extends Fragment implements IBackPressFragment
 
                     break;
                 case APP:
+                    SettingsMenuFragment.this.displaySettingsMenu(AppSettingsFragment.class);
+
                     break;
                 default:
                     break;

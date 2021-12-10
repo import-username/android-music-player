@@ -35,7 +35,9 @@
     <string name="now_playing_text">Now playing</string>
     <string name="settings_menu_header_text">Settings</string>
     <string name="account_settings_title">Account</string>
+    <string name="app_settings_title">App</string>
     <string name="account_settings_email_title">Email</string>
     <string name="account_settings_edit_button_text">Edit Account</string>
     <string name="account_settings_toolbar">Account Settings</string>
+    <string name="app_settings_toolbar">App Settings</string>
 </resources>
