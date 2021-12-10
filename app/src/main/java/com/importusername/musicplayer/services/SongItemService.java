@@ -115,6 +115,10 @@ public class SongItemService extends Service {
         this.notificationManager.notify(NOTIFICATION_ID, notification);
     }
 
+    public void cancelNotification() {
+        this.notificationManager.cancel(NOTIFICATION_ID);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

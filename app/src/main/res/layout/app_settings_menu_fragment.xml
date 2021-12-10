@@ -34,7 +34,6 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintVertical_bias="0"
                 app:buttonTitle="Play in background"
-                app:buttonDescription="Continues to play music audio if the app has been placed in the background."
-                app:preferenceName="appSettings"/>
+                app:buttonDescription="Continues to play music audio if the app has been placed in the background."/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

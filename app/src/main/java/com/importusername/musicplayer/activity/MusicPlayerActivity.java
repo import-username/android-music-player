@@ -18,6 +18,7 @@ import androidx.lifecycle.OnLifecycleEvent;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.fragments.*;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
@@ -118,9 +119,15 @@ public class MusicPlayerActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-//        // TODO - check user setting pref for if music service should play in background
-//        this.service.getExoPlayer().stop();
-//        this.service.cancelNotification();
+        final boolean playInBackground = this.getSharedPreferences("app", 0).getBoolean(
+                AppSettings.PLAY_IN_BACKGROUND.getSettingName(), false
+        );
+
+        if (!playInBackground) {
+            // TODO - check user setting pref for if music service should play in background
+            this.service.getExoPlayer().stop();
+            this.service.cancelNotification();
+        }
     }
 
     @Override
