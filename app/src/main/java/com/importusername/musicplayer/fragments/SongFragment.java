@@ -140,6 +140,17 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
                     SongFragment.this.changeSongLayoutInfo(SongFragment.this.songMenuItemList.get(newPosition.mediaItemIndex));
                 }
             }
+
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                if (isPlaying) {
+                    SongFragment.this.displayNotification(
+                            SongFragment.this.songMenuItemList.get(service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
+                    );
+                } else {
+                    SongFragment.this.service.displayNotification("Nothing's playing...", "...");
+                }
+            }
         };
 
         this.service.getExoPlayer().addListener(this.playerListener);
@@ -236,8 +247,6 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
             if (item.getAuthor() != null) {
                 ((TextView) getView().findViewById(R.id.song_menu_author_view)).setText(item.getAuthor());
             }
-
-            this.displayNotification(item.getSongName());
         }
     }
 
