@@ -28,6 +28,10 @@ public class AppSettingsFragment extends Fragment implements IBackPressFragment 
                 AppSettings.PLAY_IN_BACKGROUND.getSettingName()
         );
 
+        ((AppSettingsToggleButton) view.findViewById(R.id.play_audio_in_bottom_panel_toggle)).setPreferenceName(
+                AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName()
+        );
+
         return view;
     }
 
