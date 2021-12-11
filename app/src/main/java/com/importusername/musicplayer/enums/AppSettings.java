@@ -5,7 +5,8 @@ package com.importusername.musicplayer.enums;
  * in one place for easier access/refactoring.
  */
 public enum AppSettings {
-    PLAY_IN_BACKGROUND("play_audio_in_background", Types.BOOLEAN);
+    PLAY_IN_BACKGROUND("play_audio_in_background", Types.BOOLEAN),
+    CONTINUE_BOTTOM_PANEL_PLAYING("continue_bottom_panel_playing", Types.BOOLEAN);
 
     private String settingName;
 
