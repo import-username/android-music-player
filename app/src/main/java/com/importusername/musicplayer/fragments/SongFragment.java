@@ -28,6 +28,7 @@ import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
@@ -35,6 +36,7 @@ import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
+import com.importusername.musicplayer.views.MusicPlayerBottomPanel;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -160,6 +162,10 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
         return view;
     }
 
+    public List<SongsMenuItem> getSongMenuItemList() {
+        return this.songMenuItemList;
+    }
+
     /**
      * Adds single song item/iteratively add from list depending on value passed in constructor.
      */
@@ -271,11 +277,25 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        this.emitFragmentEvent("close_bottom_panel", null);
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
 
-        // Emit a stopped_fragment event to notify parent fragment that player should be stopped.
-        this.emitFragmentEvent("stopped_fragment", this.playerListener);
+        final boolean continuePlayingThroughPanel = this.getContext().getSharedPreferences("app", 0).getBoolean(
+                AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName(), false
+        );
+
+        if (!continuePlayingThroughPanel) {
+            this.service.stopPlayer();
+        } else {
+            this.emitFragmentEvent("display_bottom_panel", this.songMenuItemList);
+        }
     }
 
     @Override
