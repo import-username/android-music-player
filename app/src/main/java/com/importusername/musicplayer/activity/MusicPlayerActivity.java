@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -18,10 +19,14 @@ import androidx.lifecycle.OnLifecycleEvent;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.fragments.*;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
+import com.importusername.musicplayer.views.MusicPlayerBottomPanel;
+
+import java.util.List;
 
 public class MusicPlayerActivity extends AppCompatActivity {
     private SongItemService service;
@@ -30,6 +35,14 @@ public class MusicPlayerActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicPlayerActivity.this.service = ((SongItemService.LocalBinder) service).getService();
+
+            ((MusicPlayerBottomPanel) MusicPlayerActivity.this.findViewById(R.id.music_player_bottom_panel))
+                    .setExoplayerService(MusicPlayerActivity.this.service);
+
+            ((MusicPlayerBottomPanel) MusicPlayerActivity.this.findViewById(R.id.music_player_bottom_panel))
+                    .setOnCloseListener(() -> {
+                        MusicPlayerActivity.this.service.stopPlayer();
+                    });
         }
 
         @Override
@@ -67,6 +80,20 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     break;
                 case "Songs":
                     final SongsMenuFragment songsMenuFragment = new SongsMenuFragment(this.service);
+
+                    songsMenuFragment.setFragmentEventListener("display_bottom_panel", (songsList) -> {
+                        if (songsList instanceof List) {
+                            MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
+
+                            panel.setVisibility(View.VISIBLE);
+
+                            panel.setSongitemsList((List<SongsMenuItem>) songsList);
+                        }
+                    });
+
+                    songsMenuFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
+                        MusicPlayerActivity.this.findViewById(R.id.music_player_bottom_panel).setVisibility(View.GONE);
+                    });
 
                     fragmentManager.beginTransaction()
                             .replace(R.id.music_player_fragment_view, songsMenuFragment, null)
@@ -124,9 +151,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
         );
 
         if (!playInBackground) {
-            // TODO - check user setting pref for if music service should play in background
             this.service.getExoPlayer().stop();
             this.service.cancelNotification();
+            MusicPlayerActivity.this.findViewById(R.id.music_player_bottom_panel).setVisibility(View.GONE);
         }
     }
 
@@ -143,17 +170,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         final Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.music_player_fragment_view);
 
         if (fragment instanceof IBackPressFragment && ((IBackPressFragment) fragment).shouldAllowBackPress()) {
-            // If conditional determines that child fragment is SongFragment, check if audio should continue through bottom panel
-            if (fragment.getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof SongFragment) {
-                final boolean continuePlayingThroughPanel = this.getSharedPreferences("app", 0).getBoolean(
-                        AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName(), false
-                );
-
-                if (!continuePlayingThroughPanel) {
-                    this.service.stopPlayer();
-                }
-            }
-
             if (fragment.getChildFragmentManager().getBackStackEntryCount() > 0) {
                 fragment.getChildFragmentManager().popBackStack();
             } else {

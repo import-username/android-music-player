@@ -11,9 +11,19 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/music_player_navbar"
+            app:layout_constraintBottom_toTopOf="@id/music_player_bottom_panel"
             app:layout_constraintVertical_bias="0"
             android:name="com.importusername.musicplayer.fragments.HomeMenuFragment" />
+    <com.importusername.musicplayer.views.MusicPlayerBottomPanel
+            android:id="@+id/music_player_bottom_panel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/music_player_navbar"
+            app:layout_constraintVertical_bias="1"
+            android:visibility="gone"/>
     <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/music_player_navbar"
             android:layout_width="match_parent"
