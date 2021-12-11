@@ -143,6 +143,17 @@ public class MusicPlayerActivity extends AppCompatActivity {
         final Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.music_player_fragment_view);
 
         if (fragment instanceof IBackPressFragment && ((IBackPressFragment) fragment).shouldAllowBackPress()) {
+            // If conditional determines that child fragment is SongFragment, check if audio should continue through bottom panel
+            if (fragment.getChildFragmentManager().findFragmentById(R.id.songs_menu_fragment_container) instanceof SongFragment) {
+                final boolean continuePlayingThroughPanel = this.getSharedPreferences("app", 0).getBoolean(
+                        AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName(), false
+                );
+
+                if (!continuePlayingThroughPanel) {
+                    this.service.stopPlayer();
+                }
+            }
+
             if (fragment.getChildFragmentManager().getBackStackEntryCount() > 0) {
                 fragment.getChildFragmentManager().popBackStack();
             } else {
