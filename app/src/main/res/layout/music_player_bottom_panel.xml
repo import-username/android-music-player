@@ -8,11 +8,11 @@
             android:id="@+id/pause_play_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/bottom_panel_skip_left"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.1">
+            app:layout_constraintHorizontal_bias="0">
         <ImageView
                 android:id="@+id/pause_button"
                 android:layout_width="45dp"
@@ -41,19 +41,43 @@
                 android:tint="@color/app_secondary_color"
                 android:visibility="invisible"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+            android:id="@+id/bottom_panel_skip_left"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            android:src="@drawable/baseline_arrow_left_24"
+            android:tint="@color/app_secondary_color"
+            android:background="@drawable/media_button_background"/>
+    <ImageView
+            android:id="@+id/bottom_panel_skip_right"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            app:layout_constraintLeft_toRightOf="@id/pause_play_container"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            android:src="@drawable/baseline_arrow_right_24"
+            android:tint="@color/app_secondary_color"
+            android:background="@drawable/media_button_background"/>
     <TextView
             android:id="@+id/music_player_bottom_panel_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintLeft_toRightOf="@id/pause_play_container"
+            app:layout_constraintLeft_toRightOf="@id/bottom_panel_skip_right"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.15"
             app:layout_constraintVertical_bias="0.1"
             android:textColor="@color/white"
             android:textSize="16sp"
-            android:maxWidth="250dp"
+            android:maxWidth="220dp"
             android:maxLines="1"
             android:ellipsize="end"
             android:scrollHorizontally="true"/>
@@ -68,7 +92,11 @@
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintVertical_bias="0.07"
             android:textColor="@color/grey"
-            android:textSize="15sp"/>
+            android:textSize="15sp"
+            android:maxWidth="220dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:scrollHorizontally="true"/>
     <ImageView
             android:id="@+id/close_bottom_panel_button"
             android:layout_width="35dp"

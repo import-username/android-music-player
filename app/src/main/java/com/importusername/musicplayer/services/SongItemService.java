@@ -22,6 +22,7 @@ import com.importusername.musicplayer.util.AppCookie;
 
 import java.util.HashMap;
 
+// TODO - add buttons for pausing/playing/stopping music to notification
 public class SongItemService extends Service {
     private NotificationManager notificationManager;
 

@@ -42,6 +42,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             ((MusicPlayerBottomPanel) MusicPlayerActivity.this.findViewById(R.id.music_player_bottom_panel))
                     .setOnCloseListener(() -> {
                         MusicPlayerActivity.this.service.stopPlayer();
+                        MusicPlayerActivity.this.service.displayNotification("Nothing's playing", "...");
                     });
         }
 

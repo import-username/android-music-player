@@ -56,6 +56,14 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
     public void setSongitemsList(List<SongsMenuItem> list) {
         this.songsMenuItemList = list;
 
+        this.findViewById(R.id.bottom_panel_skip_left).setOnClickListener((v) -> {
+            MusicPlayerBottomPanel.this.service.getExoPlayer().seekToPreviousMediaItem();
+        });
+
+        this.findViewById(R.id.bottom_panel_skip_right).setOnClickListener((v) -> {
+            MusicPlayerBottomPanel.this.service.getExoPlayer().seekToNextMediaItem();
+        });
+
         ((TextView) this.findViewById(R.id.music_player_bottom_panel_title)).setText(
                 this.songsMenuItemList.get(this.service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
         );
