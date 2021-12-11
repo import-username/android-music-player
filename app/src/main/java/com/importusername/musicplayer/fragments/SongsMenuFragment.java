@@ -111,10 +111,10 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                                         true
                                 );
 
-                                songFragment.setFragmentEventListener("stopped_fragment", (listener) -> {
-                                    // TODO - check user setting pref to determine if music should continue playing through bottom panel
-                                    SongsMenuFragment.this.service.stopPlayer((Player.Listener) listener);
-                                });
+//                                songFragment.setFragmentEventListener("stopped_fragment", (listener) -> {
+//                                    // TODO - check user setting pref to determine if music should continue playing through bottom panel
+////                                    SongsMenuFragment.this.service.stopPlayer((Player.Listener) listener);
+//                                });
 
                                 fragmentTransaction
                                         .replace(R.id.songs_menu_fragment_container, songFragment, null)

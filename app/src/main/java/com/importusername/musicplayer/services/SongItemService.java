@@ -82,6 +82,12 @@ public class SongItemService extends Service {
         }
     }
 
+    public void resumeAudio() {
+        if (!this.exoPlayer.isPlaying()) {
+            this.exoPlayer.play();
+        }
+    }
+
     public void stopPlayer() {
         this.exoPlayer.stop();
         this.exoPlayer.clearMediaItems();
