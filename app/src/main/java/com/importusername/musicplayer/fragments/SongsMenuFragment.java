@@ -38,7 +38,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongsMenuFragment extends Fragment implements IBackPressFragment {
+public class SongsMenuFragment extends EventFragment implements IBackPressFragment {
     private SongsMenuListAdapter songsMenuListAdapter;
 
     private SongItemService service;
@@ -111,10 +111,13 @@ public class SongsMenuFragment extends Fragment implements IBackPressFragment {
                                         true
                                 );
 
-//                                songFragment.setFragmentEventListener("stopped_fragment", (listener) -> {
-//                                    // TODO - check user setting pref to determine if music should continue playing through bottom panel
-////                                    SongsMenuFragment.this.service.stopPlayer((Player.Listener) listener);
-//                                });
+                                songFragment.setFragmentEventListener("display_bottom_panel", (songsList) -> {
+                                    this.emitFragmentEvent("display_bottom_panel", songsList);
+                                });
+
+                                songFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
+                                    SongsMenuFragment.this.emitFragmentEvent("close_bottom_panel", data);
+                                });
 
                                 fragmentTransaction
                                         .replace(R.id.songs_menu_fragment_container, songFragment, null)
