@@ -3,10 +3,14 @@ package com.importusername.musicplayer.adapters.songsmenu;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -46,24 +50,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private ArrayList<SongsMenuItem> songsMenuArray = new ArrayList<>();
+    private final ArrayList<SongsMenuItem> songsMenuArray = new ArrayList<>();
 
     private final FragmentActivity activity;
 
     private final int VIEW_HEADER = 0;
     private final int VIEW_MUSIC_ITEM = 1;
 
-    private View.OnClickListener addButtonListener;
+    private final View.OnClickListener addButtonListener;
 
-    private ISongItemListener songItemClickListener;
+    private final ISongItemListener songItemClickListener;
 
     private final boolean automaticallyGetSongs;
 
-    private final int songsRequestLimit = 12;
-
-    private int songsRequestSkip = 0;
-
     private int totalRows = 0;
+
+    private Uri queryUri;
+
+    private final SongsQueryEntity songsQueryEntity = new SongsQueryEntity();
 
     /**
      * Initialize songs menu array
@@ -78,6 +82,9 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.addButtonListener = addButtonListener;
         this.songItemClickListener = songItemClickListener;
         this.automaticallyGetSongs = automaticallyGetSongs;
+        this.queryUri = Uri.parse(AppConfig.getProperty("url", this.activity.getApplicationContext())
+                + Endpoints.GET_SONGS);
+
         this.populateSongsDataset();
     }
 
@@ -99,59 +106,50 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
      */
     public void populateSongsDataset() {
         if (this.automaticallyGetSongs) {
-            final String url = AppConfig.getProperty("url", this.activity.getApplicationContext()) +
-                    Endpoints.GET_SONGS +
-                    String.format("?limit=%s", this.songsRequestLimit) +
-                    String.format("&skip=%s", this.songsRequestSkip) +
-                    "&includeTotal=true";
+            final SongsQueryUri songsQueryUri = new SongsQueryUri();
+            songsQueryUri.setSongQueryHost(this.queryUri);
+            songsQueryUri.addQueryParam("includeTotal", "true");
 
-            final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
-                    url,
-                    RequestMethod.GET,
+            this.songsQueryEntity.queryNextSong(
                     this.activity.getApplicationContext(),
-                    true,
-                    this.getSongsRequestAction()
-            );
+                    songsQueryUri,
+                    (jsonArray, total) -> {
+                        SongsMenuListAdapter.this.totalRows = total;
 
-            requestThread.start();
+                        SongsMenuListAdapter.this.activity.runOnUiThread(() -> {
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                try {
+                                    SongsMenuListAdapter.this.addItem(new SongsMenuItem(jsonArray.getJSONObject(i)));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            final RecyclerView recyclerView = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_recyclerview);
+                            final ConstraintLayout constraintLayout = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
+
+                            if (recyclerView.getVisibility() == View.GONE) {
+                                constraintLayout.setVisibility(View.GONE);
+                                recyclerView.setVisibility(View.VISIBLE);
+                            }
+                        });
+                    });
         }
     }
 
-    /**
-     * Adds each song item to the recyclerview adapter's array.
-     */
-    private IHttpRequestAction getSongsRequestAction() {
-        return (status, response, headers) -> {
-            // TODO - add a conditional for non 2xx status codes
-            try {
-                final JSONObject responseObject = new JSONObject(response);
-                final JSONArray rowsArray = responseObject.getJSONArray("rows");
-                final String totalRows = responseObject.getString("total");
+    public void changeQueryUrl(Uri uri) {
+        // This uri will be used for all queries until changed again
+        this.queryUri = uri;
 
-                SongsMenuListAdapter.this.totalRows = Integer.parseInt(totalRows);
-                SongsMenuListAdapter.this.songsRequestSkip += rowsArray.length();
+        // Clears array of all song items and adds first null item to display menu header.
+        this.songsMenuArray.clear();
+        this.songsMenuArray.add(null);
 
-                SongsMenuListAdapter.this.activity.runOnUiThread(() -> {
-                    for (int i = 0; i < rowsArray.length(); i++) {
-                        try {
-                            SongsMenuListAdapter.this.addItem(new SongsMenuItem(rowsArray.getJSONObject(i)));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
+        // Reset query entity to reset skip field to 0.
+        this.songsQueryEntity.reset();
 
-                    final RecyclerView recyclerView = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_recyclerview);
-                    final ConstraintLayout constraintLayout = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
-
-                    if (recyclerView.getVisibility() == View.GONE) {
-                        constraintLayout.setVisibility(View.GONE);
-                        recyclerView.setVisibility(View.VISIBLE);
-                    }
-                });
-            } catch (JSONException exc) {
-                exc.printStackTrace();
-            }
-        };
+        // Repopulate dataset with new uri
+        this.populateSongsDataset();
     }
 
     @NonNull
@@ -165,6 +163,21 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             case VIEW_HEADER:
                 view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.songs_menu_header_container, parent, false);
+
+                view.findViewById(R.id.songs_menu_search_bar_input)
+                        .setOnKeyListener((v, keyCode, event) -> {
+                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                                final String text = ((EditText) v).getText().toString();
+
+                                changeQueryUrl(Uri.parse(
+                                        AppConfig.getProperty("url", SongsMenuListAdapter.this.activity.getApplicationContext())
+                                        + Endpoints.GET_SONGS
+                                        + (text.length() > 0 ? "?titleIncludes=" + ((EditText) v).getText() : "")
+                                ));
+                            }
+
+                            return true;
+                        });
 
                 viewHolder = new ViewHolderHeader(view, this.addButtonListener);
                 break;
