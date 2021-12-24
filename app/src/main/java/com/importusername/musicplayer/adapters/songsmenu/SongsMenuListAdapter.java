@@ -166,10 +166,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
                 view.findViewById(R.id.songs_menu_search_bar_input)
                         .setOnKeyListener((v, keyCode, event) -> {
-                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-                                final String text = ((EditText) v).getText().toString();
+                            final String text = ((EditText) v).getText().toString();
 
-                                changeQueryUrl(Uri.parse(
+                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                                SongsMenuListAdapter.this.changeQueryUrl(Uri.parse(
                                         AppConfig.getProperty("url", SongsMenuListAdapter.this.activity.getApplicationContext())
                                         + Endpoints.GET_SONGS
                                         + (text.length() > 0 ? "?titleIncludes=" + ((EditText) v).getText() : "")
@@ -177,6 +177,18 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                             }
 
                             return true;
+                        });
+
+                view.findViewById(R.id.songs_menu_search_bar_icon)
+                        .setOnClickListener((v) -> {
+                            final String searchText = ((EditText) view.findViewById(R.id.songs_menu_search_bar_input))
+                                    .getText().toString();
+
+                            SongsMenuListAdapter.this.changeQueryUrl(Uri.parse(
+                                    AppConfig.getProperty("url", SongsMenuListAdapter.this.activity.getApplicationContext())
+                                            + Endpoints.GET_SONGS
+                                            + (searchText.length() > 0 ? "?titleIncludes=" + searchText : "")
+                            ));
                         });
 
                 viewHolder = new ViewHolderHeader(view, this.addButtonListener);
