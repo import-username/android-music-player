@@ -1,13 +1,8 @@
 package com.importusername.musicplayer.fragments;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,13 +11,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.exoplayer2.*;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.MediaSourceFactory;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
@@ -31,13 +23,12 @@ import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
-import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
-import com.importusername.musicplayer.views.MusicPlayerBottomPanel;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,6 +36,8 @@ import java.util.List;
 
 public class SongFragment extends EventFragment implements IBackPressFragment {
     private SongsMenuItem initialSongItem;
+
+    private int initialSkip;
 
     private List<SongsMenuItem> songMenuItemList;
 
@@ -59,25 +52,28 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
     }
 
     /**
-     * Performs the same as {@link SongFragment#SongFragment(SongsMenuItem, List, SongItemService, boolean)}
+     * Performs the same as {@link SongFragment#SongFragment(SongsMenuItem, int, List, SongItemService, boolean)}
      * but does not include a list of items to be played after the initial song item.
      */
-    public SongFragment(SongsMenuItem initialSongItem, SongItemService service) {
+    public SongFragment(SongsMenuItem initialSongItem, int initialSkip, SongItemService service) {
         super(R.layout.song_menu_layout);
 
         this.initialSongItem = initialSongItem;
+        this.initialSkip = initialSkip;
         this.service = service;
     }
 
     /**
      * @param initialSongItem The song item that the player should initially start playing.
+     * @param initialSkip The number of song queries that was skipped in initial get-songs request.
      * @param songMenuItemList List of song items to play. Initial song item should be included in this list.
      * @param playAllSongs Boolean value to determine if all songs in the list should be added to exoplayer playlist.
      */
-    public SongFragment(SongsMenuItem initialSongItem, List<SongsMenuItem> songMenuItemList, SongItemService service, boolean playAllSongs) {
+    public SongFragment(SongsMenuItem initialSongItem, int initialSkip, List<SongsMenuItem> songMenuItemList, SongItemService service, boolean playAllSongs) {
         super(R.layout.song_menu_layout);
 
         this.initialSongItem = initialSongItem;
+        this.initialSkip = initialSkip;
         this.songMenuItemList = songMenuItemList;
         this.playAllSongs = playAllSongs;
         this.service = service;
@@ -134,11 +130,59 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
         // TODO - change service notification title/content when song changes
         this.playerListener = new Player.Listener() {
+            // Used to avoid requesting more songs with the same skip query param twice.
+            private int skippedMediaIndex;
+
             @Override
             public void onPositionDiscontinuity(Player.PositionInfo oldPosition,
                                                 Player.PositionInfo newPosition,
                                                 int reason) {
                 if (newPosition.mediaItemIndex != oldPosition.mediaItemIndex) {
+                    // Add more songs if the end of playlist is being reached
+                    if (newPosition.mediaItemIndex != skippedMediaIndex && ((SongFragment.this.songMenuItemList.size() - newPosition.mediaItemIndex) < 11)) {
+                        skippedMediaIndex = newPosition.mediaItemIndex;
+
+                        final String url = AppConfig.getProperty("url", SongFragment.this.getContext())
+                                + Endpoints.GET_SONGS
+                                + "?skip=" + (SongFragment.this.songMenuItemList.size() + SongFragment.this.initialSkip);
+
+                        final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
+                                url,
+                                RequestMethod.GET,
+                                SongFragment.this.getContext(),
+                                true,
+                                (status, response, headers) -> {
+                                    if (status > 199 && status < 300) {
+                                        final Handler handler = new Handler (
+                                                SongFragment.this.service.getExoPlayer().getApplicationLooper()
+                                        );
+
+                                        handler.post(() -> {
+                                            try {
+                                                final JSONArray rows = new JSONObject(response).getJSONArray("rows");
+
+                                                for (int i = 0; i < rows.length(); i++) {
+                                                    SongFragment.this.songMenuItemList.add(new SongsMenuItem(rows.getJSONObject(i)));
+
+                                                    SongFragment.this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
+                                                            AppConfig.getProperty("url", SongFragment.this.getContext())
+                                                                    + Endpoints.SONG
+                                                                    + "/"
+                                                                    + new SongsMenuItem(rows.getJSONObject(i)).getSongId()
+                                                    )));
+                                                }
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        });
+                                    }
+                                }
+                        );
+
+                        requestThread.start();
+                    }
+
+                    // If media item was changed, change layout data to that of the corresponding song
                     SongFragment.this.changeSongLayoutInfo(SongFragment.this.songMenuItemList.get(newPosition.mediaItemIndex));
                 }
             }
@@ -170,6 +214,9 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
      * Adds single song item/iteratively add from list depending on value passed in constructor.
      */
     private void addSongItems() {
+        this.service.getExoPlayer().stop();
+        this.service.getExoPlayer().clearMediaItems();
+
         // TODO - handle non 2xx status codes
         if (this.isValidSongItemList() && this.playAllSongs) {
             for (SongsMenuItem item : this.songMenuItemList) {

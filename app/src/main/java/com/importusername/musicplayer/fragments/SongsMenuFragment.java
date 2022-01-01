@@ -1,20 +1,12 @@
 package com.importusername.musicplayer.fragments;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,6 +20,7 @@ import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.ISongItemListener;
 import com.importusername.musicplayer.services.SongItemService;
+import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +69,10 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
 
     private ISongItemListener songItemClickListener() {
         return (SongsMenuItem item) -> {
+            // TODO - fix issue with songs preceding clicked song not being loaded into exoplayer
             final String url = AppConfig.getProperty("url", this.getContext())
-                    + Endpoints.GET_SONGS;
+                    + Endpoints.GET_SONGS
+                    + "?skip=" + (this.songsMenuListAdapter.getSongItemIndex(item) - 1);
 
             final FragmentTransaction fragmentTransaction = SongsMenuFragment.this.getChildFragmentManager().beginTransaction();
 
@@ -106,6 +101,7 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
 
                                 final SongFragment songFragment = new SongFragment(
                                         item,
+                                        (this.songsMenuListAdapter.getSongItemIndex(item) - 1),
                                         songItems,
                                         this.service,
                                         true
@@ -155,6 +151,12 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
             // Repopulate song list adapter's dataset when child fragment emits refresh_dataset event.
             createSongMenuFragment.setFragmentEventListener("refresh_dataset", (data) -> {
                 SongsMenuFragment.this.songsMenuListAdapter.populateSongsDataset();
+            });
+
+            createSongMenuFragment.setFragmentEventListener("redirect_to_song", (data) -> {
+                SongsMenuFragment.this.songsMenuListAdapter.populateSongsDataset();
+
+                getChildFragmentManager().beginTransaction().remove(createSongMenuFragment).commit();
             });
 
             fragmentTransaction

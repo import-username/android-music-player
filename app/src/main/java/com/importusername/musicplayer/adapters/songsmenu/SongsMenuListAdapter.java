@@ -233,6 +233,15 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+     public int getSongItemIndex(SongsMenuItem item) {
+        for (int i = 0; i < this.songsMenuArray.size(); i++) {
+            if (this.songsMenuArray.get(i) != null && this.songsMenuArray.get(i).getSongId().equals(item.getSongId()))
+                return i;
+        }
+
+        return -1;
+     }
+
     @Override
     public int getItemCount() {
         return this.songsMenuArray.size();
