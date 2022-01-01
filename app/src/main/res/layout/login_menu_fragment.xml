@@ -27,6 +27,7 @@
                 android:paddingHorizontal="20dp"
                 android:textStyle="bold"
                 android:textSize="20sp"
+                android:textColor="@color/black"
                 android:inputType="textEmailAddress"
                 android:layout_marginTop="40dp"/>
         <EditText
@@ -40,6 +41,7 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:background="@drawable/auth_form_input"
+                android:textColor="@color/black"
                 android:hint="@string/music_player_login_password_input"
                 android:paddingHorizontal="20dp"
                 android:textStyle="bold"
