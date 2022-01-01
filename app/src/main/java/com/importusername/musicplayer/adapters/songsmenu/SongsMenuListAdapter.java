@@ -96,8 +96,6 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void addItem(SongsMenuItem songsMenuItem) throws JSONException {
         if (songsMenuItem != null) {
             this.songsMenuArray.add(songsMenuItem);
-
-            this.notifyDataSetChanged();
         }
     }
 
@@ -124,6 +122,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                                     e.printStackTrace();
                                 }
                             }
+
+                            SongsMenuListAdapter.this.notifyDataSetChanged();
 
                             final RecyclerView recyclerView = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_recyclerview);
                             final ConstraintLayout constraintLayout = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
