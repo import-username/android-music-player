@@ -99,7 +99,10 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
         final View view = inflater.inflate(R.layout.song_menu_layout, container, false);
 
+        this.emitFragmentEvent("close_bottom_panel", null);
+
         ((TextView) view.findViewById(R.id.song_menu_title_view)).setText(this.initialSongItem.getSongName());
+        view.findViewById(R.id.song_menu_title_view).setSelected(true);
 
         if (this.initialSongItem.getSongThumbnailId() != null) {
             final String url = AppConfig.getProperty("url", view.getContext())
@@ -108,7 +111,7 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
             final GlideUrl glideUrl = new GlideUrl(
                     url,
-                    new LazyHeaders.Builder().addHeader("Cookie", AppCookie.getAuthCookie(this.getActivity())).build()
+                    new LazyHeaders.Builder().addHeader("Cookie", AppCookie.getAuthCookie(this.context)).build()
             );
 
             final ImageView thumbnail = view.findViewById(R.id.song_menu_image_custom);
@@ -117,7 +120,7 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
             defaultThumbnail.setVisibility(View.GONE);
             thumbnail.setVisibility(View.VISIBLE);
 
-            Glide.with(this.getActivity())
+            Glide.with(this.context)
                     .load(glideUrl)
                     .into(thumbnail);
         }
@@ -161,7 +164,7 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
                         final BufferSongPlaylistThread bufferSongPlaylistThread = new BufferSongPlaylistThread(
                                 url,
                                 SongFragment.this.songMenuItemList,
-                                SongFragment.this.getContext()
+                                SongFragment.this.context
                         );
 
                         bufferSongPlaylistThread.setQueryLimit(1);
@@ -178,7 +181,7 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
                                 handler.post(() -> {
                                     SongFragment.this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
-                                            AppConfig.getProperty("url", SongFragment.this.getContext())
+                                            AppConfig.getProperty("url", SongFragment.this.context)
                                                     + Endpoints.SONG
                                                     + "/"
                                                     + SongFragment.this.songMenuItemList.get(finalI).getSongId()
@@ -188,42 +191,6 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
                         });
 
                         bufferSongPlaylistThread.start();
-
-//
-//                        final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
-//                                url,
-//                                RequestMethod.GET,
-//                                SongFragment.this.getContext(),
-//                                true,
-//                                (status, response, headers) -> {
-//                                    if (status > 199 && status < 300) {
-//                                        final Handler handler = new Handler (
-//                                                SongFragment.this.service.getExoPlayer().getApplicationLooper()
-//                                        );
-//
-//                                        handler.post(() -> {
-//                                            try {
-//                                                final JSONArray rows = new JSONObject(response).getJSONArray("rows");
-//
-//                                                for (int i = 0; i < rows.length(); i++) {
-//                                                    SongFragment.this.songMenuItemList.add(new SongsMenuItem(rows.getJSONObject(i)));
-//
-//                                                    SongFragment.this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
-//                                                            AppConfig.getProperty("url", SongFragment.this.getContext())
-//                                                                    + Endpoints.SONG
-//                                                                    + "/"
-//                                                                    + new SongsMenuItem(rows.getJSONObject(i)).getSongId()
-//                                                    )));
-//                                                }
-//                                            } catch (JSONException e) {
-//                                                e.printStackTrace();
-//                                            }
-//                                        });
-//                                    }
-//                                }
-//                        );
-//
-//                        requestThread.start();
                     }
 
                     // If media item was changed, change layout data to that of the corresponding song
@@ -233,13 +200,13 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
             @Override
             public void onIsPlayingChanged(boolean isPlaying) {
-                if (isPlaying) {
-                    SongFragment.this.displayNotification(
-                            SongFragment.this.songMenuItemList.get(service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
-                    );
-                } else {
-                    SongFragment.this.service.displayNotification("Nothing's playing...", "...");
-                }
+//                if (isPlaying) {
+//                    SongFragment.this.displayNotification(
+//                            SongFragment.this.songMenuItemList.get(service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
+//                    );
+//                } else {
+//                    SongFragment.this.service.displayNotification("Nothing's playing...", "...");
+//                }
             }
         };
 
@@ -265,7 +232,7 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
         if (this.isValidSongItemList() && this.playAllSongs) {
             for (SongsMenuItem item : this.songMenuItemList) {
                 this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
-                        AppConfig.getProperty("url", this.getContext())
+                        AppConfig.getProperty("url", this.context)
                                 + Endpoints.SONG
                                 + "/"
                                 + item.getSongId()
@@ -275,11 +242,12 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
                     this.service.getExoPlayer().seekTo(this.songMenuItemList.indexOf(item), 0);
                 }
 
-                this.playAudio();
             }
+
+            this.playAudio();
         } else {
             this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
-                    AppConfig.getProperty("url", this.getContext())
+                    AppConfig.getProperty("url", this.context)
                     + Endpoints.SONG
                     + "/"
                     + this.initialSongItem.getSongId()
@@ -327,14 +295,14 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
                 defaultThumbnail.setVisibility(View.GONE);
                 thumbnail.setVisibility(View.VISIBLE);
 
-                Glide.with(this.getActivity())
+                Glide.with(this.context)
                         .load(glideUrl)
                         .into(thumbnail);
             } else {
                 final ImageView thumbnail = getView().findViewById(R.id.song_menu_image_custom);
                 final ImageView defaultThumbnail = getView().findViewById(R.id.song_menu_image_default);
 
-                Glide.with(this.getActivity())
+                Glide.with(this.context)
                         .clear(thumbnail);
 
                 defaultThumbnail.setVisibility(View.VISIBLE);
@@ -371,6 +339,9 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
     public void onResume() {
         super.onResume();
 
+        // TODO - update layout data here
+        // TODO - should probably add listener here too
+
         this.emitFragmentEvent("close_bottom_panel", null);
     }
 
@@ -378,17 +349,9 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
     public void onStop() {
         super.onStop();
 
-        // TODO - change this setting to 'display bottom panel'.
-        // TODO - disregard bottom panel setting for playing audio in backgroundd
-        final boolean continuePlayingThroughPanel = this.getContext().getSharedPreferences("app", 0).getBoolean(
-                AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName(), false
-        );
+        this.service.removePlayerListener(this.playerListener);
 
-        if (!continuePlayingThroughPanel) {
-//            this.service.stopPlayer();
-        } else {
-            this.emitFragmentEvent("display_bottom_panel", this.songMenuItemList);
-        }
+        this.emitFragmentEvent("display_bottom_panel", this.songMenuItemList);
     }
 
     @Override
