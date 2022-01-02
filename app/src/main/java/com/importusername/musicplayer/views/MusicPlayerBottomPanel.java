@@ -1,6 +1,8 @@
 package com.importusername.musicplayer.views;
 
 import android.content.Context;
+import android.net.Uri;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -9,11 +11,16 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.activity.MusicPlayerActivity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
+import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.fragments.SongFragment;
 import com.importusername.musicplayer.services.SongItemService;
+import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
+import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -22,6 +29,8 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
     private SongItemService service;
 
     private List<SongsMenuItem> songsMenuItemList;
+
+    private Player.Listener bottomPanelListener;
 
     private OnCloseListener onCloseListener;
 
@@ -56,6 +65,11 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
     public void setSongitemsList(List<SongsMenuItem> list) {
         this.songsMenuItemList = list;
 
+        // This conditional is to buffer playlist when bottom panel is displayed within the last 10 songs.
+        if ((this.songsMenuItemList.size() - this.service.getExoPlayer().getCurrentMediaItemIndex()) < 11) {
+            this.bufferPlaylist();
+        }
+
         this.findViewById(R.id.bottom_panel_skip_left).setOnClickListener((v) -> {
             MusicPlayerBottomPanel.this.service.getExoPlayer().seekToPreviousMediaItem();
         });
@@ -74,11 +88,28 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
                         : "by ..."
         );
 
-        this.service.getExoPlayer().addListener(new Player.Listener() {
+        /*
+         * When song fragment stops, its player listener is removed.
+         * This will prevent player object from sending requests to get more available songs.
+         * This listener object will be used to avoid that issue.
+         */
+        this.bottomPanelListener = new Player.Listener() {
+            // Used to avoid requesting more songs with the same skip query param twice.
+            private int skippedMediaIndex;
+
             @Override
             public void onPositionDiscontinuity(Player.PositionInfo oldPosition,
                                                 Player.PositionInfo newPosition,
                                                 int reason) {
+                if (newPosition.mediaItemIndex != oldPosition.mediaItemIndex) {
+                    // Add more songs if the end of playlist is being reached
+                    if (newPosition.mediaItemIndex != skippedMediaIndex && ((MusicPlayerBottomPanel.this.songsMenuItemList.size() - newPosition.mediaItemIndex) < 11)) {
+                        skippedMediaIndex = newPosition.mediaItemIndex;
+
+                        MusicPlayerBottomPanel.this.bufferPlaylist();
+                    }
+                }
+
                 ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_title))
                         .setText(MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex)
                                 .getSongName());
@@ -86,7 +117,7 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
                 ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_author))
                         .setText(
                                 MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() != null
-                                ? "by " + MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() : "by ..."
+                                        ? "by " + MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() : "by ..."
                         );
 
                 MusicPlayerBottomPanel.this.service.displayNotification(
@@ -94,11 +125,21 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
                         MusicPlayerBottomPanel.this.songsMenuItemList.get(service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
                 );
             }
-        });
+        };
+
+        this.service.getExoPlayer().addListener(this.bottomPanelListener);
     }
 
     public void setOnCloseListener(OnCloseListener listener) {
         this.onCloseListener = listener;
+    }
+
+    public void disableBottomPanel() {
+        if (this.bottomPanelListener != null) {
+            this.service.getExoPlayer().removeListener(this.bottomPanelListener);
+        }
+
+        this.setVisibility(View.GONE);
     }
 
     private void initializeLayout() {
@@ -132,6 +173,44 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
                 this.service.resumeAudio();
             }
         });
+    }
+
+    private void bufferPlaylist() {
+        int sizeBeforeRequest = MusicPlayerBottomPanel.this.songsMenuItemList.size();
+
+        final String url = AppConfig.getProperty("url", MusicPlayerBottomPanel.this.getContext())
+                + Endpoints.GET_SONGS;
+
+        final BufferSongPlaylistThread bufferSongPlaylistThread = new BufferSongPlaylistThread(
+                url,
+                MusicPlayerBottomPanel.this.songsMenuItemList,
+                MusicPlayerBottomPanel.this.getContext()
+        );
+
+        bufferSongPlaylistThread.setQueryLimit(1);
+
+        bufferSongPlaylistThread.setSkip(MusicPlayerBottomPanel.this.songsMenuItemList.size());
+
+        bufferSongPlaylistThread.setOnCompleteListener((boolean complete) -> {
+            for (int i = sizeBeforeRequest; i < MusicPlayerBottomPanel.this.songsMenuItemList.size(); i++) {
+                final Handler handler = new Handler (
+                        MusicPlayerBottomPanel.this.service.getExoPlayer().getApplicationLooper()
+                );
+
+                int finalI = i;
+
+                handler.post(() -> {
+                    MusicPlayerBottomPanel.this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
+                            AppConfig.getProperty("url", MusicPlayerBottomPanel.this.getContext())
+                                    + Endpoints.SONG
+                                    + "/"
+                                    + MusicPlayerBottomPanel.this.songsMenuItemList.get(finalI).getSongId()
+                    )));
+                });
+            }
+        });
+
+        bufferSongPlaylistThread.start();
     }
 
     public interface OnCloseListener {
