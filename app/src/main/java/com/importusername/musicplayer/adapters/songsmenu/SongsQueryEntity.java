@@ -37,15 +37,22 @@ public class SongsQueryEntity {
                         if (status > 199 && status < 300) {
                             final JSONObject responseObject = new JSONObject(response);
                             final JSONArray rowsArray = responseObject.getJSONArray("rows");
-                            final int totalRows = responseObject.getInt("total");
 
-                            this.skip += rowsArray.length();
+                            int totalRows = -1;
 
-                            onSongQueryListener.onSongQuery(rowsArray, totalRows);
+                            try {
+                                 totalRows = responseObject.getInt("total");
+                            } finally {
+                                this.skip += rowsArray.length();
+
+                                onSongQueryListener.onSongQuery(rowsArray, totalRows);
+                            }
                         } else {
                             onSongQueryListener.onSongQuery(new JSONArray(), -1);
                         }
                     } catch (JSONException exc) {
+                        exc.printStackTrace();
+
                         onSongQueryListener.onSongQuery(null, -1);
                     }
                 }
