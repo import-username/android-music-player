@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.fragments;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SongsMenuFragment extends EventFragment implements IBackPressFragment {
+    private Context context;
+
     private SongsMenuListAdapter songsMenuListAdapter;
 
     private SongItemService service;
@@ -46,6 +49,13 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
         super(R.layout.music_player_songs_menu_fragment);
 
         this.service = service;
+    }
+
+    @Override
+    public void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.context = getActivity().getApplicationContext();
     }
 
     @Nullable
@@ -72,18 +82,14 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
     private ISongItemListener songItemClickListener() {
         return (SongsMenuItem item) -> {
             // TODO - fix issue with songs preceding clicked song not being loaded into exoplayer
-            final String url = AppConfig.getProperty("url", this.getContext())
-                    + Endpoints.GET_SONGS
-                    + "?includeTotal=true&skip=" + (this.songsMenuListAdapter.getSongItemIndex(item) - 1);
-
             final List<SongsMenuItem> songsMenuItemList = new ArrayList<>();
 
             final BufferSongPlaylistThread bufferSongPlaylistThread = new BufferSongPlaylistThread(
-                    AppConfig.getProperty("url", this.getContext())
+                    AppConfig.getProperty("url", SongsMenuFragment.this.context)
                             + Endpoints.GET_SONGS
                             + "?includeTotal=true",
                     songsMenuItemList,
-                    SongsMenuFragment.this.getContext()
+                    SongsMenuFragment.this.context
             );
 
             bufferSongPlaylistThread.setTargetSongItem(item);
