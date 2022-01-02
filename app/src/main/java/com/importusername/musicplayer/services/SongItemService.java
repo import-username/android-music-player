@@ -1,14 +1,17 @@
 package com.importusername.musicplayer.services;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import com.google.android.exoplayer2.*;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
@@ -34,7 +37,35 @@ public class SongItemService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_NOT_STICKY;
+        String channelId;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            channelId = this.createNotificationChannel();
+        } else {
+            channelId = "";
+        }
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
+                .setOngoing(true)
+                .setContentTitle("title")
+                .setContentText("contentText")
+                .setSmallIcon(R.drawable.outline_music_note_24);
+
+        startForeground(NOTIFICATION_ID, notificationBuilder.build());
+
+        return START_STICKY;
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel() {
+        String channelId = "12345";
+
+        notificationManager.createNotificationChannel(new NotificationChannel(
+                channelId,
+                "SongItemService Channel",
+                NotificationManager.IMPORTANCE_DEFAULT));
+
+        return channelId;
     }
 
     @Nullable
