@@ -95,6 +95,10 @@ public class SongItemService extends Service {
         }
     }
 
+    public void removePlayerListener(Player.Listener listener) {
+        this.exoPlayer.removeListener(listener);
+    }
+
     public ExoPlayer getExoPlayer() {
         return this.exoPlayer;
     }
