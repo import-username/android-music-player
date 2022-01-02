@@ -38,6 +38,8 @@ public class BufferSongPlaylistThread extends Thread {
 
     private int limit = 50;
 
+    private int queryLimit = -1;
+
     private int totalAvailableRows = -1;
 
     public BufferSongPlaylistThread(String url, List<SongsMenuItem> songsMenuItemList, Context context) {
@@ -67,6 +69,17 @@ public class BufferSongPlaylistThread extends Thread {
             this.skip = skip;
     }
 
+    /**
+     * Sets the maximum number of queries to perform before stopping.
+     * Can not be called if {@link BufferSongPlaylistThread#setTargetSongItem(SongsMenuItem)} has been called.
+     * Must be called before {@link BufferSongPlaylistThread#start()}
+     * @param queryLimit Number of queries to perform.
+     */
+    public void setQueryLimit(int queryLimit) {
+        if (!this.started && this.targetItem == null)
+            this.queryLimit = queryLimit;
+    }
+
     @Override
     public synchronized void start() {
         super.start();
@@ -78,12 +91,21 @@ public class BufferSongPlaylistThread extends Thread {
     public void run() {
         AtomicBoolean cont = new AtomicBoolean(true);
 
-        // Loop should continue until a response contains the target item. Otherwise, continue until responses contain 0 items.
         if (this.targetItem != null) {
+            // Loop should continue until a response contains the target item.
             while (!this.includesSongItem() && cont.get()) {
                 this.bufferArray(cont);
             }
+        } else if (this.queryLimit != -1) {
+            // Loop should continue until n number of queries has been made.
+            int queries = 0;
+            while ((queries < this.queryLimit) && cont.get()) {
+                this.bufferArray(cont);
+
+                queries++;
+            }
         } else {
+            // Loop should continue until responses contain 0 items.
             while (cont.get()) {
                 this.bufferArray(cont);
             }
