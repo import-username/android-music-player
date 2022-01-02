@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.fragments;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +25,7 @@ import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
+import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
@@ -35,6 +37,8 @@ import org.json.JSONObject;
 import java.util.List;
 
 public class SongFragment extends EventFragment implements IBackPressFragment {
+    private Context context;
+
     private SongsMenuItem initialSongItem;
 
     private int initialSkip;
@@ -77,6 +81,13 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
         this.songMenuItemList = songMenuItemList;
         this.playAllSongs = playAllSongs;
         this.service = service;
+    }
+
+    @Override
+    public void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.context = getActivity().getApplicationContext();
     }
 
     @Nullable
@@ -140,46 +151,79 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
                 if (newPosition.mediaItemIndex != oldPosition.mediaItemIndex) {
                     // Add more songs if the end of playlist is being reached
                     if (newPosition.mediaItemIndex != skippedMediaIndex && ((SongFragment.this.songMenuItemList.size() - newPosition.mediaItemIndex) < 11)) {
+                        int sizeBeforeRequest = SongFragment.this.songMenuItemList.size();
+
                         skippedMediaIndex = newPosition.mediaItemIndex;
 
-                        final String url = AppConfig.getProperty("url", SongFragment.this.getContext())
-                                + Endpoints.GET_SONGS
-                                + "?skip=" + (SongFragment.this.songMenuItemList.size() + SongFragment.this.initialSkip);
+                        final String url = AppConfig.getProperty("url", SongFragment.this.context)
+                                + Endpoints.GET_SONGS;
 
-                        final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
+                        final BufferSongPlaylistThread bufferSongPlaylistThread = new BufferSongPlaylistThread(
                                 url,
-                                RequestMethod.GET,
-                                SongFragment.this.getContext(),
-                                true,
-                                (status, response, headers) -> {
-                                    if (status > 199 && status < 300) {
-                                        final Handler handler = new Handler (
-                                                SongFragment.this.service.getExoPlayer().getApplicationLooper()
-                                        );
-
-                                        handler.post(() -> {
-                                            try {
-                                                final JSONArray rows = new JSONObject(response).getJSONArray("rows");
-
-                                                for (int i = 0; i < rows.length(); i++) {
-                                                    SongFragment.this.songMenuItemList.add(new SongsMenuItem(rows.getJSONObject(i)));
-
-                                                    SongFragment.this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
-                                                            AppConfig.getProperty("url", SongFragment.this.getContext())
-                                                                    + Endpoints.SONG
-                                                                    + "/"
-                                                                    + new SongsMenuItem(rows.getJSONObject(i)).getSongId()
-                                                    )));
-                                                }
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                        });
-                                    }
-                                }
+                                SongFragment.this.songMenuItemList,
+                                SongFragment.this.getContext()
                         );
 
-                        requestThread.start();
+                        bufferSongPlaylistThread.setQueryLimit(1);
+
+                        bufferSongPlaylistThread.setSkip(SongFragment.this.songMenuItemList.size());
+
+                        bufferSongPlaylistThread.setOnCompleteListener((boolean complete) -> {
+                            for (int i = sizeBeforeRequest; i < SongFragment.this.songMenuItemList.size(); i++) {
+                                final Handler handler = new Handler (
+                                        SongFragment.this.service.getExoPlayer().getApplicationLooper()
+                                );
+
+                                int finalI = i;
+
+                                handler.post(() -> {
+                                    SongFragment.this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
+                                            AppConfig.getProperty("url", SongFragment.this.getContext())
+                                                    + Endpoints.SONG
+                                                    + "/"
+                                                    + SongFragment.this.songMenuItemList.get(finalI).getSongId()
+                                    )));
+                                });
+                            }
+                        });
+
+                        bufferSongPlaylistThread.start();
+
+//
+//                        final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
+//                                url,
+//                                RequestMethod.GET,
+//                                SongFragment.this.getContext(),
+//                                true,
+//                                (status, response, headers) -> {
+//                                    if (status > 199 && status < 300) {
+//                                        final Handler handler = new Handler (
+//                                                SongFragment.this.service.getExoPlayer().getApplicationLooper()
+//                                        );
+//
+//                                        handler.post(() -> {
+//                                            try {
+//                                                final JSONArray rows = new JSONObject(response).getJSONArray("rows");
+//
+//                                                for (int i = 0; i < rows.length(); i++) {
+//                                                    SongFragment.this.songMenuItemList.add(new SongsMenuItem(rows.getJSONObject(i)));
+//
+//                                                    SongFragment.this.service.getExoPlayer().addMediaItem(MediaItem.fromUri(Uri.parse(
+//                                                            AppConfig.getProperty("url", SongFragment.this.getContext())
+//                                                                    + Endpoints.SONG
+//                                                                    + "/"
+//                                                                    + new SongsMenuItem(rows.getJSONObject(i)).getSongId()
+//                                                    )));
+//                                                }
+//                                            } catch (JSONException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                        });
+//                                    }
+//                                }
+//                        );
+//
+//                        requestThread.start();
                     }
 
                     // If media item was changed, change layout data to that of the corresponding song
@@ -334,12 +378,14 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
     public void onStop() {
         super.onStop();
 
+        // TODO - change this setting to 'display bottom panel'.
+        // TODO - disregard bottom panel setting for playing audio in backgroundd
         final boolean continuePlayingThroughPanel = this.getContext().getSharedPreferences("app", 0).getBoolean(
                 AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName(), false
         );
 
         if (!continuePlayingThroughPanel) {
-            this.service.stopPlayer();
+//            this.service.stopPlayer();
         } else {
             this.emitFragmentEvent("display_bottom_panel", this.songMenuItemList);
         }
