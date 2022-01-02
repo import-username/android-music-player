@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.fragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
+import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
@@ -72,7 +74,19 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
             // TODO - fix issue with songs preceding clicked song not being loaded into exoplayer
             final String url = AppConfig.getProperty("url", this.getContext())
                     + Endpoints.GET_SONGS
-                    + "?skip=" + (this.songsMenuListAdapter.getSongItemIndex(item) - 1);
+                    + "?includeTotal=true&skip=" + (this.songsMenuListAdapter.getSongItemIndex(item) - 1);
+
+            final List<SongsMenuItem> songsMenuItemList = new ArrayList<>();
+
+            final BufferSongPlaylistThread bufferSongPlaylistThread = new BufferSongPlaylistThread(
+                    AppConfig.getProperty("url", this.getContext())
+                            + Endpoints.GET_SONGS
+                            + "?includeTotal=true",
+                    songsMenuItemList,
+                    SongsMenuFragment.this.getContext()
+            );
+
+            bufferSongPlaylistThread.setTargetSongItem(item);
 
             final FragmentTransaction fragmentTransaction = SongsMenuFragment.this.getChildFragmentManager().beginTransaction();
 
@@ -83,51 +97,32 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
                     R.anim.slide_out
             );
 
-            final MusicPlayerRequestThread requestThread = new MusicPlayerRequestThread(
-                    url,
-                    RequestMethod.GET,
-                    this.getContext(),
-                    true,
-                    (status, response, headers) -> {
-                        if (status > 199 && status < 300) {
-                            try {
-                                List<SongsMenuItem> songItems = new ArrayList<>();
+            bufferSongPlaylistThread.setOnCompleteListener((boolean complete) -> {
+                // TODO - this causes an issue when songlistadapter is shortended using searchbar
+                final SongFragment songFragment = new SongFragment(
+                        item,
+                        (this.songsMenuListAdapter.getSongItemIndex(item) - 1),
+                        songsMenuItemList,
+                        this.service,
+                        true
+                );
 
-                                final JSONArray rows = new JSONObject(response).getJSONArray("rows");
+                songFragment.setFragmentEventListener("display_bottom_panel", (songsList) -> {
+                    this.emitFragmentEvent("display_bottom_panel", songsList);
+                });
 
-                                for (int i = 0; i < rows.length(); i++) {
-                                    songItems.add(new SongsMenuItem(rows.getJSONObject(i)));
-                                }
+                songFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
+                    SongsMenuFragment.this.emitFragmentEvent("close_bottom_panel", data);
+                });
 
-                                final SongFragment songFragment = new SongFragment(
-                                        item,
-                                        (this.songsMenuListAdapter.getSongItemIndex(item) - 1),
-                                        songItems,
-                                        this.service,
-                                        true
-                                );
+                fragmentTransaction
+                        .replace(R.id.songs_menu_fragment_container, songFragment, null)
+                        .setReorderingAllowed(true)
+                        .addToBackStack("Song Fragment")
+                        .commit();
+            });
 
-                                songFragment.setFragmentEventListener("display_bottom_panel", (songsList) -> {
-                                    this.emitFragmentEvent("display_bottom_panel", songsList);
-                                });
-
-                                songFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
-                                    SongsMenuFragment.this.emitFragmentEvent("close_bottom_panel", data);
-                                });
-
-                                fragmentTransaction
-                                        .replace(R.id.songs_menu_fragment_container, songFragment, null)
-                                        .setReorderingAllowed(true)
-                                        .addToBackStack("Song Fragment")
-                                        .commit();
-                            } catch (JSONException exc) {
-                                exc.printStackTrace();
-                            }
-                        }
-                    }
-            );
-
-            requestThread.start();
+            bufferSongPlaylistThread.start();
         };
     }
 
