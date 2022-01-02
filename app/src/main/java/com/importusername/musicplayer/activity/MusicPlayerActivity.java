@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -20,14 +21,19 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.OnLifecycleEvent;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
+import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.fragments.*;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
+import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
+import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.views.MusicPlayerBottomPanel;
 
 import java.util.List;
@@ -97,7 +103,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     });
 
                     songsMenuFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
-                        MusicPlayerActivity.this.findViewById(R.id.music_player_bottom_panel).setVisibility(View.GONE);
+                        MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
+
+                        panel.disableBottomPanel();
                     });
 
                     fragmentManager.beginTransaction()
