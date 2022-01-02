@@ -92,10 +92,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 case "Songs":
                     final SongsMenuFragment songsMenuFragment = new SongsMenuFragment(this.service);
 
+                    MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
+
                     songsMenuFragment.setFragmentEventListener("display_bottom_panel", (songsList) -> {
                         if (songsList instanceof List) {
-                            MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
-
                             panel.setVisibility(View.VISIBLE);
 
                             panel.setSongitemsList((List<SongsMenuItem>) songsList);
@@ -103,8 +103,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     });
 
                     songsMenuFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
-                        MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
-
                         panel.disableBottomPanel();
                     });
 

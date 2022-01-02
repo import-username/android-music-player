@@ -108,22 +108,23 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
 
                         MusicPlayerBottomPanel.this.bufferPlaylist();
                     }
+
+                    ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_title))
+                            .setText(MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex)
+                                    .getSongName());
+
+                    ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_author))
+                            .setText(
+                                    MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() != null
+                                            ? "by " + MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() : "by ..."
+                            );
+
+                    MusicPlayerBottomPanel.this.service.displayNotification(
+                            "Now playing",
+                            MusicPlayerBottomPanel.this.songsMenuItemList.get(service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
+                    );
                 }
 
-                ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_title))
-                        .setText(MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex)
-                                .getSongName());
-
-                ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_author))
-                        .setText(
-                                MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() != null
-                                        ? "by " + MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() : "by ..."
-                        );
-
-                MusicPlayerBottomPanel.this.service.displayNotification(
-                        "Now playing",
-                        MusicPlayerBottomPanel.this.songsMenuItemList.get(service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
-                );
             }
         };
 
