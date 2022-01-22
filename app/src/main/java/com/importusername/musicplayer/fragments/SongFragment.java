@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.*;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.SongPlayerListener;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.AppSettings;
@@ -340,7 +341,21 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
         super.onResume();
 
         // TODO - update layout data here
-        // TODO - should probably add listener here too
+        final SongPlayerListener songPlayerListener = new SongPlayerListener(
+                this.songMenuItemList,
+                this.context,
+                this.service,
+                this.getView()
+        );
+
+        songPlayerListener.setSongLayoutViews(
+                getView().findViewById(R.id.song_menu_title_view),
+                getView().findViewById(R.id.song_menu_author_view),
+                getView().findViewById(R.id.song_menu_image_custom),
+                getView().findViewById(R.id.song_menu_image_default)
+        );
+
+        this.service.getExoPlayer().addListener(songPlayerListener);
 
         this.emitFragmentEvent("close_bottom_panel", null);
     }

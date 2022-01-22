@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+// TODO - fix issue where pause/play button not in correct state when displaying from song menu
 public class MusicPlayerBottomPanel extends ConstraintLayout {
     private SongItemService service;
 

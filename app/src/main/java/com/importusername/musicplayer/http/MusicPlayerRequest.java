@@ -47,15 +47,15 @@ public class MusicPlayerRequest {
         this.authenticate = authenticate;
         this.applicationContext = applicationContext;
         this.requestHeaders = new HashMap<>();
-        this.setAuthCookie();
+        this.setAuthCookie(applicationContext);
     }
 
     /**
      * Sets auth cookie header in headers hashmap if authenticate is true.
      */
-    private void setAuthCookie() {
+    private void setAuthCookie(Context context) {
         if (this.authenticate) {
-            this.requestHeaders.put("Cookie", AppCookie.getAuthCookie(this.applicationContext));
+            this.requestHeaders.put("Cookie", AppCookie.getAuthCookie(context));
         }
     }
 
