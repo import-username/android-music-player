@@ -40,4 +40,7 @@
     <string name="account_settings_edit_button_text">Edit Account</string>
     <string name="account_settings_toolbar">Account Settings</string>
     <string name="app_settings_toolbar">App Settings</string>
+    <string name="playlist_menu_title">Playlists</string>
+    <string name="playlist_menu_create_button">CREATE</string>
+    <string name="playlist_menu_search_hint">Search playlists...</string>
 </resources>

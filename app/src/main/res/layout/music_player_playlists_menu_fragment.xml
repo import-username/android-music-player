@@ -3,12 +3,15 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
-    <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:background="@color/songs_menu_foreground_primary">
+    <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/playlist_menu_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:text="PLAYLISTS MENU" />
+            app:layout_constraintVertical_bias="0"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

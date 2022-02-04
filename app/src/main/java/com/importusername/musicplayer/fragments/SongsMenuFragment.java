@@ -81,7 +81,6 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
 
     private ISongItemListener songItemClickListener() {
         return (SongsMenuItem item) -> {
-            // TODO - fix issue with songs preceding clicked song not being loaded into exoplayer
             final List<SongsMenuItem> songsMenuItemList = new ArrayList<>();
 
             final BufferSongPlaylistThread bufferSongPlaylistThread = new BufferSongPlaylistThread(
