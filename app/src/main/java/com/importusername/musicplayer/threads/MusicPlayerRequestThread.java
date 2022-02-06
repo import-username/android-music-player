@@ -63,6 +63,7 @@ public class MusicPlayerRequestThread extends Thread {
             case PATCH:
                 break;
             case DELETE:
+                request.deleteRequest();
                 break;
         }
     }
