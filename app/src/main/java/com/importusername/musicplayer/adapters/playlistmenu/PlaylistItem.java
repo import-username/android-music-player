@@ -43,15 +43,15 @@ public class PlaylistItem {
     }
 
     public String getPlaylistId() {
-        return this.playlistId;
+        return this.getNullableValue(this.playlistId);
     }
 
     public String getPlaylistName() {
-        return this.playlistName;
+        return this.getNullableValue(this.playlistName);
     }
 
     public String getPlaylistThumbnailId() {
-        return this.playlistThumbnailId;
+        return this.getNullableValue(this.playlistThumbnailId);
     }
 
     public void fetchItems() {
@@ -70,5 +70,13 @@ public class PlaylistItem {
 
     public List<SongsMenuItem> getPlaylistItems() {
         return this.playlistItems;
+    }
+
+    private String getNullableValue(String value) {
+        if (value == null || value.equals("NULL") || value.equals("null")) {
+            return null;
+        }
+
+        return value;
     }
 }

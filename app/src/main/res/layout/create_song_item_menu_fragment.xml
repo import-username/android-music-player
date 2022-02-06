@@ -25,7 +25,7 @@
                     app:layout_constraintVertical_bias="0.08"
                     android:background="@color/songs_menu_song_default_icon_background">
                 <ImageView
-                        android:id="@+id/create_song_menu_image_default"
+                        android:id="@+id/create_image_default"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         app:layout_constraintWidth_percent="0.4"
@@ -38,7 +38,7 @@
                         android:tint="@color/songs_menu_song_default_icon"
                         android:src="@drawable/outline_music_note_24"/>
                 <ImageView
-                        android:id="@+id/create_song_menu_image_custom"
+                        android:id="@+id/create_image_custom"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         app:layout_constraintWidth_percent="0.4"

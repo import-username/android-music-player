@@ -14,4 +14,8 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintVertical_bias="0"/>
+    <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/playlist_menu_fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

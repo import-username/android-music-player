@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.importusername.musicplayer.R;
@@ -49,7 +51,33 @@ public class PlaylistsMenuFragment extends Fragment implements IBackPressFragmen
 
     private View.OnClickListener addPlaylistListener() {
         return (view) -> {
+            final FragmentManager fragmentManager = getChildFragmentManager();
+            final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
+            fragmentTransaction.setCustomAnimations(
+                    R.anim.slide_in,
+                    R.anim.slide_out,
+                    R.anim.slide_in,
+                    R.anim.slide_out
+            );
+
+            final CreatePlaylistFragment playlistFragment = new CreatePlaylistFragment();
+
+            playlistFragment.setFragmentEventListener("refresh_dataset", (data) -> {
+                PlaylistsMenuFragment.this.playlistMenuAdapter.populatePlaylistDataset();
+            });
+
+            playlistFragment.setFragmentEventListener("redirect_to_playlist", (data) -> {
+                PlaylistsMenuFragment.this.playlistMenuAdapter.populatePlaylistDataset();
+
+                getChildFragmentManager().beginTransaction().remove(playlistFragment).commit();
+            });
+
+            fragmentTransaction
+                    .replace(R.id.playlist_menu_fragment_container, playlistFragment, null)
+                    .setReorderingAllowed(true)
+                    .addToBackStack("PlaylistMenuFragment")
+                    .commit();
         };
     }
 
@@ -61,6 +89,10 @@ public class PlaylistsMenuFragment extends Fragment implements IBackPressFragmen
 
     @Override
     public boolean shouldAllowBackPress() {
+        if (getChildFragmentManager().findFragmentById(R.id.playlist_menu_fragment_container) instanceof IBackPressFragment) {
+            return ((IBackPressFragment) getChildFragmentManager().findFragmentById(R.id.playlist_menu_fragment_container)).shouldAllowBackPress();
+        }
+
         return false;
     }
 }

@@ -43,4 +43,7 @@
     <string name="playlist_menu_title">Playlists</string>
     <string name="playlist_menu_create_button">CREATE</string>
     <string name="playlist_menu_search_hint">Search playlists...</string>
+    <string name="create_playlist_menu_title"><font color="#DB1D40">CREATE</font> PLAYLIST</string>
+    <string name="create_playlist_item_title_hint"><font color="#DB1D40">PLAYLIST</font> TITLE</string>
+    <string name="create_playlist_button_text">CREATE PLAYLIST</string>
 </resources>

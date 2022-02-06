@@ -128,7 +128,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                             final RecyclerView recyclerView = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_recyclerview);
                             final ConstraintLayout constraintLayout = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
 
-                            if (recyclerView.getVisibility() == View.GONE) {
+                            if (recyclerView != null && recyclerView.getVisibility() == View.GONE) {
                                 constraintLayout.setVisibility(View.GONE);
                                 recyclerView.setVisibility(View.VISIBLE);
                             }

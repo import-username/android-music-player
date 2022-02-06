@@ -1,13 +1,9 @@
 package com.importusername.musicplayer.adapters.playlistmenu;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -21,8 +17,6 @@ import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryEntity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
-import com.importusername.musicplayer.interfaces.ISongItemListener;
-import com.importusername.musicplayer.interfaces.IThumbnailRequestAction;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +40,7 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private Uri playlistQueryUri;
 
-    private final SongsQueryEntity songsQueryEntity = new SongsQueryEntity();
+    private final SongsQueryEntity playlistQueryEntity = new SongsQueryEntity();
 
     public PlaylistMenuAdapter(ArrayList<PlaylistItem> playlistMenuArray, FragmentActivity activity,
                                View.OnClickListener addPlaylistListener, OnPlaylistClick playlistClickListener) {
@@ -55,7 +49,10 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.activity = activity;
         this.addPlaylistListener = addPlaylistListener;
         this.playlistClickListener = playlistClickListener;
+        this.playlistQueryUri = Uri.parse(AppConfig.getProperty("url", this.activity.getApplicationContext())
+                + Endpoints.GET_PLAYLISTS);
 
+        this.populatePlaylistDataset();
     }
 
     public void addPlaylistItem(PlaylistItem playlistItem) {
@@ -65,36 +62,38 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public void populatePlaylistDataset() {
-        final SongsQueryUri songsQueryUri = new SongsQueryUri();
-        songsQueryUri.setSongQueryHost(this.playlistQueryUri);
-        songsQueryUri.addQueryParam("includeTotal", "true");
+        final SongsQueryUri playlistsQueryUri = new SongsQueryUri();
+        playlistsQueryUri.setSongQueryHost(this.playlistQueryUri);
+        playlistsQueryUri.addQueryParam("includeTotal", "true");
 
-        this.songsQueryEntity.queryNextSong(
+        this.playlistQueryEntity.queryNextSong(
                 this.activity.getApplicationContext(),
-                songsQueryUri,
+                playlistsQueryUri,
                 (jsonArray, total) -> {
                     PlaylistMenuAdapter.this.totalPlaylists = total;
 
-                    PlaylistMenuAdapter.this.activity.runOnUiThread(() -> {
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            try {
-                                PlaylistMenuAdapter.this.addPlaylistItem(new PlaylistItem(jsonArray.getJSONObject(i)));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                    if (jsonArray != null) {
+                        PlaylistMenuAdapter.this.activity.runOnUiThread(() -> {
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                try {
+                                    PlaylistMenuAdapter.this.addPlaylistItem(new PlaylistItem(jsonArray.getJSONObject(i)));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                             }
-                        }
 
-                        PlaylistMenuAdapter.this.notifyDataSetChanged();
+                            PlaylistMenuAdapter.this.notifyDataSetChanged();
 
-                        final RecyclerView recyclerView = PlaylistMenuAdapter.this.activity.findViewById(R.id.playlist_menu_recyclerview);
-                        // TODO - remove load screen here
-//                        final ConstraintLayout constraintLayout = PlaylistMenuAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
+                            final RecyclerView recyclerView = PlaylistMenuAdapter.this.activity.findViewById(R.id.playlist_menu_recyclerview);
+                            // TODO - remove load screen here
+    //                        final ConstraintLayout constraintLayout = PlaylistMenuAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
 
-//                        if (recyclerView.getVisibility() == View.GONE) {
-//                            constraintLayout.setVisibility(View.GONE);
-//                            recyclerView.setVisibility(View.VISIBLE);
-//                        }
-                    });
+    //                        if (recyclerView.getVisibility() == View.GONE) {
+    //                            constraintLayout.setVisibility(View.GONE);
+    //                            recyclerView.setVisibility(View.VISIBLE);
+    //                        }
+                        });
+                    }
                 });
     }
 

@@ -43,7 +43,7 @@ public class CreateSongImageLayout extends ConstraintLayout {
      * Hides default image view and displays custom image view.
      */
     public void setCustomImage(InputStream inputStream) {
-        final ImageView customImage = ((ImageView) this.getViewById(R.id.create_song_menu_image_custom));
+        final ImageView customImage = ((ImageView) this.getViewById(R.id.create_image_custom));
 
         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
         // TODO - add conditional for invalid files
@@ -57,7 +57,7 @@ public class CreateSongImageLayout extends ConstraintLayout {
      * Removes custom image selected by user and sets default imageview to visible.
      */
     public void removeCustomImage() {
-        final ImageView customImage = ((ImageView) this.getViewById(R.id.create_song_menu_image_custom));
+        final ImageView customImage = ((ImageView) this.getViewById(R.id.create_image_custom));
         customImage.setVisibility(View.GONE);
         customImage.setImageDrawable(null);
 
@@ -70,7 +70,7 @@ public class CreateSongImageLayout extends ConstraintLayout {
      * @param visible boolean value
      */
     public void toggleCustomImage(boolean visible) {
-        final ImageView customImage = ((ImageView) this.getViewById(R.id.create_song_menu_image_custom));
+        final ImageView customImage = ((ImageView) this.getViewById(R.id.create_image_custom));
 
         if (visible) {
             customImage.setVisibility(View.VISIBLE);
@@ -84,7 +84,7 @@ public class CreateSongImageLayout extends ConstraintLayout {
      * @param visible boolean value
      */
     public void toggleDefaultImage(boolean visible) {
-        final ImageView defaultImage = ((ImageView) this.getViewById(R.id.create_song_menu_image_default));
+        final ImageView defaultImage = ((ImageView) this.getViewById(R.id.create_image_default));
 
         if (visible) {
             defaultImage.setVisibility(View.VISIBLE);
@@ -100,7 +100,7 @@ public class CreateSongImageLayout extends ConstraintLayout {
      * @return Boolean value.
      */
     public boolean isCustomImage() {
-        return (this.getViewById(R.id.create_song_menu_image_custom)).getVisibility() == View.VISIBLE;
+        return (this.getViewById(R.id.create_image_custom)).getVisibility() == View.VISIBLE;
     }
 
     /**
@@ -108,7 +108,7 @@ public class CreateSongImageLayout extends ConstraintLayout {
      * @return InputStream object
      */
     public InputStream getCustomImage() {
-        final ImageView customImageView = ((ImageView) this.getViewById(R.id.create_song_menu_image_custom));
+        final ImageView customImageView = ((ImageView) this.getViewById(R.id.create_image_custom));
 
         final BitmapDrawable bitmapDrawable = ((BitmapDrawable) customImageView.getDrawable());
 

@@ -109,7 +109,7 @@ public class SongsMenuItem {
     }
 
     private String getNullableValue(String value) {
-        if (value == null || value.equals("NULL")) {
+        if (value == null || value.equals("NULL") || value.equals("null")) {
             return null;
         }
 
