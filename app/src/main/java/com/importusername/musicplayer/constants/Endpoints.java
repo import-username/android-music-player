@@ -17,4 +17,6 @@ public class Endpoints {
     public static final String GET_PLAYLISTS = "/playlist/get-playlists";
 
     public static final String CREATE_PLAYLIST = "/playlist/create-playlist";
+
+    public static final String DELETE_PLAYLIST = "/playlist/delete-playlist";
 }

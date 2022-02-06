@@ -1,10 +1,14 @@
 package com.importusername.musicplayer.adapters.playlistmenu;
 
+import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -17,12 +21,16 @@ import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryEntity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.enums.RequestMethod;
+import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final ArrayList<PlaylistItem> playlistMenuArray = new ArrayList<>();
@@ -148,13 +156,24 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 break;
             case VIEW_PLAYLIST_ITEM:
                 final PlaylistItem playlistItem = this.playlistMenuArray.get(position);
-                ((ViewHolder) holder).setText(playlistItem.getPlaylistName());
-                ((ViewHolder) holder).setClickListener(playlistItem);
+                final PlaylistMenuAdapter.ViewHolder playlistViewHolder = (PlaylistMenuAdapter.ViewHolder) holder;
+
+                playlistViewHolder.setText(playlistItem.getPlaylistName());
+                playlistViewHolder.setOptionsClickListener(playlistItem, (item) -> {
+                    final int deletedItemPos = holder.getAbsoluteAdapterPosition();
+
+                    PlaylistMenuAdapter.this.playlistMenuArray.remove(deletedItemPos);
+
+                    PlaylistMenuAdapter.this.activity.runOnUiThread(() -> {
+                        PlaylistMenuAdapter.this.notifyItemRemoved(deletedItemPos);
+                    });
+                });
+                playlistViewHolder.setClickListener(playlistItem);
 
                 if (playlistItem.getPlaylistThumbnailId() != null) {
-                    ((ViewHolder) holder).setItemThumbnail(playlistItem.getPlaylistThumbnailId().split("/")[2]);
+                    playlistViewHolder.setItemThumbnail(playlistItem.getPlaylistThumbnailId().split("/")[2]);
                 } else {
-                    ((ViewHolder) holder).clearThumbnail();
+                    playlistViewHolder.clearThumbnail();
                 }
 
                 break;
@@ -245,6 +264,43 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 PlaylistMenuAdapter.ViewHolder.this.clickListener.click(item);
             });
         }
+
+        public void setOptionsClickListener(PlaylistItem item, OnDeleteListener deleteListener) {
+            this.constraintLayout.findViewById(R.id.music_item_options_button).setOnClickListener((v) -> {
+                final Context contextWrapper = new ContextThemeWrapper(this.fragmentActivity, R.style.PopupMenu);
+
+                final PopupMenu popupMenu = new PopupMenu(contextWrapper, v);
+
+                popupMenu.setOnMenuItemClickListener((menuItem) -> {
+                    switch (menuItem.getTitle().toString()) {
+                        case "Delete":
+                            final String url = AppConfig.getProperty("url", this.fragmentActivity)
+                                    + Endpoints.DELETE_PLAYLIST
+                                    + "/"
+                                    + item.getPlaylistId();
+
+                            final MusicPlayerRequestThread thread = new MusicPlayerRequestThread(
+                                    url,
+                                    RequestMethod.DELETE,
+                                    this.fragmentActivity,
+                                    true,
+                                    (status, response, headers) -> {
+                                        if (status == 200) {
+                                            deleteListener.delete(item);
+                                        }
+                                    }
+                            );
+
+                            thread.start();
+                            break;
+                    }
+
+                    return true;
+                });
+                popupMenu.inflate(R.menu.playlist_item_popup);
+                popupMenu.show();
+            });
+        }
     }
 
     public static class ViewHolderHeader extends RecyclerView.ViewHolder {
@@ -264,5 +320,9 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public interface OnPlaylistClick {
         void click(PlaylistItem playlistItem);
+    }
+
+    public interface OnDeleteListener {
+        void delete(PlaylistItem playlistItem);
     }
 }
