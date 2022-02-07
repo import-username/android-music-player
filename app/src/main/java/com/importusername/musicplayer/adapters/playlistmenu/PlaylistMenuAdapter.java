@@ -159,7 +159,9 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 final PlaylistMenuAdapter.ViewHolder playlistViewHolder = (PlaylistMenuAdapter.ViewHolder) holder;
 
                 playlistViewHolder.setText(playlistItem.getPlaylistName());
-                playlistViewHolder.setOptionsClickListener(playlistItem, (item) -> {
+                playlistViewHolder.setOptionsClickListener(playlistItem);
+                playlistViewHolder.setClickListener(playlistItem);
+                playlistViewHolder.setOnDeleteListener((item) -> {
                     final int deletedItemPos = holder.getAbsoluteAdapterPosition();
 
                     PlaylistMenuAdapter.this.playlistMenuArray.remove(deletedItemPos);
@@ -168,7 +170,6 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         PlaylistMenuAdapter.this.notifyItemRemoved(deletedItemPos);
                     });
                 });
-                playlistViewHolder.setClickListener(playlistItem);
 
                 if (playlistItem.getPlaylistThumbnailId() != null) {
                     playlistViewHolder.setItemThumbnail(playlistItem.getPlaylistThumbnailId().split("/")[2]);
@@ -210,6 +211,8 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         private final ConstraintLayout constraintLayout;
 
         private final OnPlaylistClick clickListener;
+
+        private OnDeleteListener deleteListener;
 
         public ViewHolder(@NonNull @NotNull View itemView, FragmentActivity activity, OnPlaylistClick clickListener) {
             super(itemView);
@@ -265,7 +268,7 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             });
         }
 
-        public void setOptionsClickListener(PlaylistItem item, OnDeleteListener deleteListener) {
+        public void setOptionsClickListener(PlaylistItem item) {
             this.constraintLayout.findViewById(R.id.music_item_options_button).setOnClickListener((v) -> {
                 final Context contextWrapper = new ContextThemeWrapper(this.fragmentActivity, R.style.PopupMenu);
 
@@ -285,8 +288,8 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     this.fragmentActivity,
                                     true,
                                     (status, response, headers) -> {
-                                        if (status == 200) {
-                                            deleteListener.delete(item);
+                                        if (status == 200 && ViewHolder.this.deleteListener != null) {
+                                            ViewHolder.this.deleteListener.delete(item);
                                         }
                                     }
                             );
@@ -300,6 +303,10 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 popupMenu.inflate(R.menu.playlist_item_popup);
                 popupMenu.show();
             });
+        }
+        
+        public void setOnDeleteListener(OnDeleteListener deleteListener) {
+            this.deleteListener = deleteListener;
         }
     }
 
