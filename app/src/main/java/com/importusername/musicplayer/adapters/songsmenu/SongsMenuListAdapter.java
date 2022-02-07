@@ -5,13 +5,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -22,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.adapters.playlistmenu.PlaylistMenuAdapter;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.fragments.SongsMenuFragment;
@@ -213,8 +212,13 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 break;
             case VIEW_MUSIC_ITEM:
                 final SongsMenuItem songItem = this.songsMenuArray.get(position);
-                ((ViewHolder) holder).setText(songItem.getSongName());
-                ((ViewHolder) holder).setClickListener(songItem);
+                final SongsMenuListAdapter.ViewHolder songViewHolder = (SongsMenuListAdapter.ViewHolder) holder;
+                songViewHolder.setText(songItem.getSongName());
+                songViewHolder.setClickListener(songItem);
+                songViewHolder.setOnOptionsListener(songItem);
+                songViewHolder.setOnAddPlaylistListener(() -> {
+                    Log.d("SongsMenuListAdapter", "'Add to playlist' button clicked.");
+                });
 
                 if (songItem.getSongThumbnailId() != null) {
                     ((ViewHolder) holder).setItemThumbnail(songItem.getSongThumbnailId().split("/")[2]);
@@ -271,6 +275,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         private final ISongItemListener clickListener;
 
+        private OnAddPlaylistClickListener addPlaylistClickListener;
+
         public ViewHolder(@NonNull @NotNull View itemView, FragmentActivity activity, ISongItemListener clickListener) {
             super(itemView);
 
@@ -325,21 +331,39 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             });
         }
 
-        private IThumbnailRequestAction requestAction(ImageView defaultImg, ImageView thumbnailImg) {
-            return (stream) -> {
-                if (stream != null) {
-                    ViewHolder.this.fragmentActivity.runOnUiThread(() -> {
-                        defaultImg.setVisibility(View.GONE);
-                        thumbnailImg.setVisibility(View.VISIBLE);
+        public void setOnOptionsListener(SongsMenuItem songsMenuItem) {
+            this.constraintLayout.findViewById(R.id.music_item_options_button).setOnClickListener((v) -> {
+                final Context contextWrapper = new ContextThemeWrapper(this.fragmentActivity, R.style.PopupMenu);
 
-                        this.constraintLayout.findViewById(R.id.songs_menu_music_item_logo_container).setBackground(null);
+                final PopupMenu popupMenu = new PopupMenu(contextWrapper, v);
 
-                        Bitmap bitmap = BitmapFactory.decodeStream(stream);
+                popupMenu.setOnMenuItemClickListener((menuItem) -> {
+                    switch (menuItem.getTitle().toString()) {
+                        case "Delete":
+                            break;
+                        case "Add to playlist":
+                            if (this.addPlaylistClickListener != null) {
+                                this.addPlaylistClickListener.click();
+                            }
 
-                        thumbnailImg.setImageBitmap(bitmap);
-                    });
-                }
-            };
+                            break;
+                    }
+
+                    return true;
+                });
+                popupMenu.inflate(R.menu.song_item_popup);
+                popupMenu.show();
+            });
+        }
+
+        public void setOnDeleteListener() {}
+
+        public void setOnAddPlaylistListener(OnAddPlaylistClickListener listener) {
+            this.addPlaylistClickListener = listener;
+        }
+
+        public interface OnAddPlaylistClickListener {
+            void click();
         }
     }
 
