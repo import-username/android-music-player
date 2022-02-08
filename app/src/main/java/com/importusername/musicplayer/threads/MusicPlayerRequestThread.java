@@ -61,6 +61,7 @@ public class MusicPlayerRequestThread extends Thread {
                 request.postRequest();
                 break;
             case PATCH:
+                request.patchRequest();
                 break;
             case DELETE:
                 request.deleteRequest();

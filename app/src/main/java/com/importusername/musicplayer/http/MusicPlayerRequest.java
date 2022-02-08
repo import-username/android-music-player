@@ -199,6 +199,31 @@ public class MusicPlayerRequest {
         urlConnection.disconnect();
     }
 
+    public void patchRequest() throws IOException {
+        URL url = new URL(this.url);
+
+        final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        urlConnection.setDoInput(true);
+        urlConnection.setDoOutput(true);
+        urlConnection.setConnectTimeout(this.connectionTimeout);
+
+        urlConnection.setRequestMethod("PATCH");
+
+        this.addRequestHeaders(urlConnection);
+        this.addRequestBody(urlConnection, true);
+
+        urlConnection.connect();
+
+        this.responseStatus = urlConnection.getResponseCode();
+        this.responseHeaders = urlConnection.getHeaderFields();
+        if (urlConnection.getResponseCode() != 200) {
+            this.readHttpResponseBody(urlConnection.getErrorStream());
+        } else {
+            this.readHttpResponseBody(urlConnection.getInputStream());
+        }
+        urlConnection.disconnect();
+    }
+
     /**
      * Sends a post request with content-type multipart.
      * @param multipartRequestEntity Multipart request entity object to read data from.

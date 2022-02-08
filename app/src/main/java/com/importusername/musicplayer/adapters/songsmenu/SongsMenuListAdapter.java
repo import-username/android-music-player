@@ -60,6 +60,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     private final ISongItemListener songItemClickListener;
 
+    private OnAddPlaylistClick onAddPlaylistClick;
+
     private final boolean automaticallyGetSongs;
 
     private int totalRows = 0;
@@ -151,6 +153,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.populateSongsDataset();
     }
 
+    public void setOnAddPlaylistClickListener(OnAddPlaylistClick onAddPlaylistClick) {
+        this.onAddPlaylistClick = onAddPlaylistClick;
+    }
+
     @NonNull
     @NotNull
     @Override
@@ -217,7 +223,9 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 songViewHolder.setClickListener(songItem);
                 songViewHolder.setOnOptionsListener(songItem);
                 songViewHolder.setOnAddPlaylistListener(() -> {
-                    Log.d("SongsMenuListAdapter", "'Add to playlist' button clicked.");
+                     if (SongsMenuListAdapter.this.onAddPlaylistClick != null) {
+                         SongsMenuListAdapter.this.onAddPlaylistClick.click(songItem);
+                     }
                 });
 
                 if (songItem.getSongThumbnailId() != null) {
@@ -380,5 +388,9 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
             constraintLayoutHeader = itemView.findViewById(R.id.songs_menu_header_container);
             itemView.findViewById(R.id.songs_menu_add_song_button).setOnClickListener(this.addButtonListener);
         }
+    }
+
+    public interface OnAddPlaylistClick {
+        void click(SongsMenuItem clickedSong);
     }
 }

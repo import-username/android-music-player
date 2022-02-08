@@ -74,9 +74,31 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
                 this.songItemClickListener(),
                 true);
 
+        songsMenuListAdapter.setOnAddPlaylistClickListener(this.onAddPlaylistClick());
         recyclerView.setAdapter(songsMenuListAdapter);
 
         return view;
+    }
+
+    private SongsMenuListAdapter.OnAddPlaylistClick onAddPlaylistClick() {
+        return (clickedSong) -> {
+            final FragmentTransaction fragmentTransaction = SongsMenuFragment.this.getChildFragmentManager().beginTransaction();
+
+            final AddToPlaylistFragment addToPlaylistFragment = new AddToPlaylistFragment(clickedSong);
+
+            fragmentTransaction.setCustomAnimations(
+                    R.anim.slide_in,
+                    R.anim.slide_out,
+                    R.anim.slide_in,
+                    R.anim.slide_out
+            );
+
+            fragmentTransaction
+                    .replace(R.id.songs_menu_fragment_container, addToPlaylistFragment, null)
+                    .setReorderingAllowed(true)
+                    .addToBackStack("Add To Playlist Fragment")
+                    .commit();
+        };
     }
 
     private ISongItemListener songItemClickListener() {
