@@ -4,10 +4,12 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.annotation.Nullable;
@@ -20,10 +22,12 @@ import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
+import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
 
 import java.util.HashMap;
+import java.util.List;
 
 // TODO - add buttons for pausing/playing/stopping music to notification
 public class SongItemService extends Service {
@@ -135,6 +139,34 @@ public class SongItemService extends Service {
 
         this.exoPlayer.removeListener(listenerToRemove);
 
+    }
+
+    public void addSong(SongsMenuItem songsMenuItem, Context context) {
+        final Handler handler = new Handler(this.exoPlayer.getApplicationLooper());
+
+        handler.post(() -> {
+            this.exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(
+                    AppConfig.getProperty("url", context)
+                            + Endpoints.SONG
+                            + "/"
+                            + songsMenuItem.getSongId()
+            )));
+        });
+    }
+
+    public void addSongs(List<SongsMenuItem> items, Context context) {
+        final Handler handler = new Handler(this.exoPlayer.getApplicationLooper());
+
+        handler.post(() -> {
+            for (SongsMenuItem item : items) {
+                this.exoPlayer.addMediaItem(MediaItem.fromUri(Uri.parse(
+                        AppConfig.getProperty("url", context)
+                                + Endpoints.SONG
+                                + "/"
+                                + item.getSongId()
+                )));
+            }
+        });
     }
 
     public void releasePlayer() {
