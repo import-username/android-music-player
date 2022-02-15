@@ -1,6 +1,7 @@
 package com.importusername.musicplayer.activity;
 
 import android.net.Uri;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ui.PlayerControlView;
+import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
@@ -46,6 +50,8 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private PlaylistSongItem.OnClickListener onItemClickListener;
 
+    private ExoPlayer player;
+
     public PlaylistAdapter(PlaylistItem playlistItem, FragmentActivity fragmentActivity) {
         this.playlistItem = playlistItem;
         this.activity = fragmentActivity;
@@ -63,6 +69,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public void setOnItemClickListener(PlaylistSongItem.OnClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
+    }
+
+    public void setExoplayer(ExoPlayer player) {
+        this.player = player;
     }
 
     public void populatePlaylistDataset() {
@@ -105,7 +115,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 break;
             case PLAYLIST_SONG_ITEM:
                 view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.songs_menu_music_item, parent, false);
+                        .inflate(R.layout.playlist_music_item, parent, false);
 
                 viewHolder = new PlaylistSongItem(view, this.activity);
                 break;
@@ -124,6 +134,12 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 if (this.playlistItem.getPlaylistThumbnailId() != null) {
                     ((PlaylistHeader) holder).setThumbnail(this.playlistItem.getPlaylistThumbnailId().split("/")[2]);
+                }
+
+                if (this.player != null) {
+                    Log.i("PLAYLIST ADAPTER", "Attempting to set exoplayer.");
+
+                    ((PlaylistHeader) holder).setExoplayer(this.player);
                 }
 
                 break;
@@ -172,10 +188,40 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             super(itemView);
 
             this.headerLayout = itemView.findViewById(R.id.playlist_header_container);
+            this.headerLayout.findViewById(R.id.playlist_menu_song_name).setSelected(true);
+
+            this.headerLayout.findViewById(R.id.playlist_menu_media_overlay).setOnClickListener((v) -> {
+                this.headerLayout.findViewById(R.id.playlist_menu_media_overlay).setVisibility(View.GONE);
+            });
+
+            this.headerLayout.findViewById(R.id.playlist_menu_default_thumbnail).setOnClickListener((v) -> {
+                this.headerLayout.findViewById(R.id.playlist_menu_media_overlay).setVisibility(View.VISIBLE);
+            });
+
+            this.headerLayout.findViewById(R.id.playlist_menu_custom_thumbnail).setOnClickListener((v) -> {
+                this.headerLayout.findViewById(R.id.playlist_menu_media_overlay).setVisibility(View.VISIBLE);
+            });
         }
 
         public void setTitle(String title) {
             ((TextView) this.headerLayout.findViewById(R.id.playlist_menu_name)).setText(title);
+        }
+
+        public void setPlayingTitle(String title) {
+            ((TextView) this.headerLayout.findViewById(R.id.playlist_menu_song_name)).setText(title);
+        }
+
+        public void setExoplayer(ExoPlayer player) {
+            final PlayerControlView playerControlView = this.headerLayout.findViewById(R.id.player_view);
+            playerControlView.setShowNextButton(true);
+            playerControlView.setShowPreviousButton(true);
+            playerControlView.setShowShuffleButton(true);
+
+            playerControlView.setRepeatToggleModes(RepeatModeUtil.REPEAT_TOGGLE_MODE_ALL);
+
+            playerControlView.setShowTimeoutMs(0);
+
+            playerControlView.setPlayer(player);
         }
 
         public void setThumbnail(String thumbnailId) {

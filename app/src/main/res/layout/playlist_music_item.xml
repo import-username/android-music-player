@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- TODO - add layout option to change to smaller song item buttons -->
 <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/songs_menu_music_item_container"
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -7,7 +6,7 @@
         android:layout_width="400dp"
         android:minWidth="280dp"
         app:layout_constraintWidth_percent="0.80"
-        android:layout_height="130dp"
+        android:layout_height="90dp"
         android:background="@drawable/music_item_button"
         android:clickable="true"
         android:focusable="true"
@@ -15,8 +14,8 @@
         android:layout_marginBottom="5dp">
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/songs_menu_music_item_logo_container"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintRight_toRightOf="parent"

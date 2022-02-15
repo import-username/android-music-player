@@ -39,6 +39,11 @@ public class SongItemService extends Service {
 
     private static int NOTIFICATION_ID = 1234;
 
+    private static String NOTIFICATION_CHANNEL_ID = "12345";
+
+    private final String defaultNotifTitle = "Nothing's playing";
+    private final String defaultNotifContent = "...";
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String channelId;
@@ -51,8 +56,8 @@ public class SongItemService extends Service {
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
                 .setOngoing(true)
-                .setContentTitle("title")
-                .setContentText("contentText")
+                .setContentTitle(this.defaultNotifTitle)
+                .setContentText(this.defaultNotifContent)
                 .setSmallIcon(R.drawable.outline_music_note_24);
 
         startForeground(NOTIFICATION_ID, notificationBuilder.build());
@@ -62,7 +67,7 @@ public class SongItemService extends Service {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private String createNotificationChannel() {
-        String channelId = "12345";
+        String channelId = NOTIFICATION_CHANNEL_ID;
 
         notificationManager.createNotificationChannel(new NotificationChannel(
                 channelId,
@@ -84,7 +89,7 @@ public class SongItemService extends Service {
 
         this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        this.displayNotification("Nothing's playing", "...");
+        this.displayNotification(this.defaultNotifTitle, this.defaultNotifContent);
 
         if (this.exoPlayer == null) {
             final HashMap<String, String> headers = new HashMap<>();
@@ -175,8 +180,9 @@ public class SongItemService extends Service {
     }
 
     public void displayNotification(String title, String contentText) {
-        // TODO - update notification song name when a new song plays
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+        Log.i("SONG SERVICE", "Updating notification: " + title);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setOngoing(true)
                 .setContentTitle(title)
                 .setContentText(contentText)
@@ -185,6 +191,10 @@ public class SongItemService extends Service {
         Notification notification = notificationBuilder.build();
 
         this.notificationManager.notify(NOTIFICATION_ID, notification);
+    }
+
+    public void resetNotification() {
+        this.displayNotification(this.defaultNotifTitle, this.defaultNotifContent);
     }
 
     public void cancelNotification() {
