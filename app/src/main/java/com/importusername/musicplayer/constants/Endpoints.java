@@ -21,4 +21,7 @@ public class Endpoints {
     public static final String DELETE_PLAYLIST = "/playlist/delete-playlist";
 
     public static final String ADD_SONG_TO_PLAYLIST = "/song/add-to-playlist";
+
+    // Requires query param of playlist id
+    public static final String GET_PLAYLIST_SONGS = "/playlist/get-songs";
 }
