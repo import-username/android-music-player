@@ -69,6 +69,10 @@ public class BufferSongPlaylistThread extends Thread {
             this.skip = skip;
     }
 
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
     /**
      * Sets the maximum number of queries to perform before stopping.
      * Can not be called if {@link BufferSongPlaylistThread#setTargetSongItem(SongsMenuItem)} has been called.
@@ -112,6 +116,7 @@ public class BufferSongPlaylistThread extends Thread {
         }
 
         if (this.onCompleteListener != null) {
+            // TODO - i think cont is always false here, it's useless
             this.onCompleteListener.onComplete(cont.get());
         }
     }
@@ -164,6 +169,7 @@ public class BufferSongPlaylistThread extends Thread {
                         }
                     }
                 } else {
+                    // TODO - call a function here for error handling
                     continueLoop.set(false);
                 }
             } catch (IOException | JSONException e) {
