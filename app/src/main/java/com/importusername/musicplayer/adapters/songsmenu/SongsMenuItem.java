@@ -41,7 +41,6 @@ public class SongsMenuItem {
     private void populateFieldsWithJson(JSONObject songObject) throws JSONException {
         this.setSongName(songObject.getString("song_title"));
         this.setAuthor(songObject.getString("song_author"));
-        this.setSongFileId(songObject.getString("song_file_path"));
         this.setSongThumbnailId(songObject.getString("song_thumbnail_path"));
         this.setSongDescription(songObject.getString("song_description"));
         this.setFavorite(songObject.getString("song_favorite"));

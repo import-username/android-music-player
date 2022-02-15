@@ -114,7 +114,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     break;
                 case "Playlists":
                     fragmentManager.beginTransaction()
-                            .replace(R.id.music_player_fragment_view, PlaylistsMenuFragment.class, null)
+                            .replace(R.id.music_player_fragment_view, new PlaylistsMenuFragment(this.service), null)
                             .setReorderingAllowed(true)
                             .addToBackStack("PlaylistsFragment")
                             .commit();

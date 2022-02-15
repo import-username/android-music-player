@@ -125,7 +125,6 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
             );
 
             bufferSongPlaylistThread.setOnCompleteListener((boolean complete) -> {
-                // TODO - this causes an issue when songlistadapter is shortended using searchbar
                 final SongFragment songFragment = new SongFragment(
                         item,
                         (this.songsMenuListAdapter.getSongItemIndex(item) - 1),
