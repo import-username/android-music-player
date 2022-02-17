@@ -14,6 +14,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.SongListener;
 import com.importusername.musicplayer.activity.MusicPlayerActivity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
@@ -26,13 +27,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 // TODO - fix issue where pause/play button not in correct state when displaying from song menu
-// TODO - url that layout uses to query more songs from backend should be changeable
 public class MusicPlayerBottomPanel extends ConstraintLayout {
     private SongItemService service;
 
     private List<SongsMenuItem> songsMenuItemList;
 
-    private Player.Listener bottomPanelListener;
+    private String songRequestsUrl;
+
+    private SongListener bottomPanelListener;
 
     private OnCloseListener onCloseListener;
 
@@ -64,8 +66,19 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
         this.service = service;
     }
 
-    public void setSongitemsList(List<SongsMenuItem> list) {
-        this.songsMenuItemList = list;
+    public void setOnCloseListener(OnCloseListener listener) {
+        this.onCloseListener = listener;
+    }
+
+    /**
+     * Displays bottom panel, continues playing songs with provided list, and continues buffering song list
+     * for a fluent transition from playlist/song menus to another menu to avoid stopping/restarting audio.
+     * @param songRequestsUrl Url that should be used to request more songs if available.
+     * @param songsList The current array of song items used to play media in exoplayer.
+     */
+    public void displayBottomPanel(String songRequestsUrl, List<SongsMenuItem> songsList) {
+        this.songRequestsUrl = songRequestsUrl;
+        this.songsMenuItemList = songsList;
 
         // This conditional is to buffer playlist when bottom panel is displayed within the last 10 songs.
         if ((this.songsMenuItemList.size() - this.service.getExoPlayer().getCurrentMediaItemIndex()) < 11) {
@@ -95,56 +108,22 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
          * This will prevent player object from sending requests to get more available songs.
          * This listener object will be used to avoid that issue.
          */
-        this.bottomPanelListener = new Player.Listener() {
-            // Used to avoid requesting more songs with the same skip query param twice.
-            private int skippedMediaIndex;
+        this.bottomPanelListener = new SongListener(
+                this.songRequestsUrl,
+                this.songsMenuItemList,
+                this.service,
+                this.getContext()
+        );
 
-            @Override
-            public void onPositionDiscontinuity(Player.PositionInfo oldPosition,
-                                                Player.PositionInfo newPosition,
-                                                int reason) {
-                if (newPosition.mediaItemIndex != oldPosition.mediaItemIndex) {
-                    // Add more songs if the end of playlist is being reached
-                    if (newPosition.mediaItemIndex != skippedMediaIndex && ((MusicPlayerBottomPanel.this.songsMenuItemList.size() - newPosition.mediaItemIndex) < 11)) {
-                        skippedMediaIndex = newPosition.mediaItemIndex;
+        this.bottomPanelListener.setOnSongChangeListener((songItem) -> {
+            ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_title))
+                    .setText(songItem.getSongName());
 
-                        MusicPlayerBottomPanel.this.bufferPlaylist();
-                    }
+            ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_author))
+                    .setText(songItem.getAuthor() != null ? "by " + songItem.getAuthor() : "by ...");
+        });
 
-                    ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_title))
-                            .setText(MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex)
-                                    .getSongName());
-
-                    ((TextView) MusicPlayerBottomPanel.this.findViewById(R.id.music_player_bottom_panel_author))
-                            .setText(
-                                    MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() != null
-                                            ? "by " + MusicPlayerBottomPanel.this.songsMenuItemList.get(newPosition.mediaItemIndex).getAuthor() : "by ..."
-                            );
-
-                    MusicPlayerBottomPanel.this.service.displayNotification(
-                            "Now playing",
-                            MusicPlayerBottomPanel.this.songsMenuItemList.get(service.getExoPlayer().getCurrentMediaItemIndex()).getSongName()
-                    );
-                }
-
-            }
-        };
-
-        this.service.getExoPlayer().addListener(this.bottomPanelListener);
-    }
-
-    public void setOnCloseListener(OnCloseListener listener) {
-        this.onCloseListener = listener;
-    }
-
-    /**
-     * Displays bottom panel, continues playing songs with provided list, and continues buffering song list
-     * for a fluent transition from playlist/song menus to another menu to avoid stopping/restarting audio.
-     * @param songRequestsUrl Url that should be used to request more songs if available.
-     * @param songsList The current array of song items used to play media in exoplayer.
-     */
-    public void displayBottomPanel(String songRequestsUrl, List<SongsMenuItem> songsList) {
-        // TODO
+        this.service.getExoPlayer().addListener(bottomPanelListener);
     }
 
     public void stopBottomPanel() {
@@ -191,11 +170,8 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
     private void bufferPlaylist() {
         int sizeBeforeRequest = MusicPlayerBottomPanel.this.songsMenuItemList.size();
 
-        final String url = AppConfig.getProperty("url", MusicPlayerBottomPanel.this.getContext())
-                + Endpoints.GET_SONGS;
-
         final BufferSongPlaylistThread bufferSongPlaylistThread = new BufferSongPlaylistThread(
-                url,
+                this.songRequestsUrl,
                 MusicPlayerBottomPanel.this.songsMenuItemList,
                 MusicPlayerBottomPanel.this.getContext()
         );

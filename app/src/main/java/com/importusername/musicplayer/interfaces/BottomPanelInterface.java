@@ -12,6 +12,6 @@ public interface BottomPanelInterface {
     void setOnFragmentLifecycleChange(OnFragmentLifecycleChange listener);
 
     interface OnFragmentLifecycleChange {
-        void displayBottomPanel(boolean display, @Nullable List<SongsMenuItem> songsMenuItemList);
+        void displayBottomPanel(boolean display, @Nullable List<SongsMenuItem> songsMenuItemList, String songsRequestUrl);
     }
 }

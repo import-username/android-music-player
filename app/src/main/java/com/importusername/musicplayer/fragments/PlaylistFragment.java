@@ -47,6 +47,8 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
 
     private SongListener songListener;
 
+    private String songsRequestUrl;
+
     public PlaylistFragment(PlaylistItem playlistItem, List<SongsMenuItem> songsMenuItemList, SongItemService service) {
         super(R.layout.playlist_menu);
 
@@ -61,12 +63,16 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable @org.jetbrains.annotations.Nullable ViewGroup container, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.playlist_menu, container, false);
 
-        this.onFragmentLifecycleChange.displayBottomPanel(false, null);
+        this.songsRequestUrl = AppConfig.getProperty("url", view.getContext())
+                + Endpoints.GET_PLAYLIST_SONGS
+                + this.playlistItem.getPlaylistId();
+
+        this.onFragmentLifecycleChange.displayBottomPanel(false, null, this.songsRequestUrl);
 
         this.songItemService.stopPlayer();
 
         this.songListener = new SongListener(
-                AppConfig.getProperty("url", this.getContext())
+                AppConfig.getProperty("url", view.getContext())
                         + Endpoints.GET_PLAYLIST_SONGS
                         + "/" + this.playlistItem.getPlaylistId(),
                 this.songsMenuItemList,
@@ -131,7 +137,7 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
     public void onResume() {
         super.onResume();
 
-        this.onFragmentLifecycleChange.displayBottomPanel(false, null);
+        this.onFragmentLifecycleChange.displayBottomPanel(false, null, this.songsRequestUrl);
     }
 
     @Override
@@ -140,7 +146,7 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
 
         this.songItemService.removePlayerListener(this.songListener);
 
-        this.onFragmentLifecycleChange.displayBottomPanel(true, this.songsMenuItemList);
+        this.onFragmentLifecycleChange.displayBottomPanel(true, this.songsMenuItemList, this.songsRequestUrl);
     }
 
     @Override

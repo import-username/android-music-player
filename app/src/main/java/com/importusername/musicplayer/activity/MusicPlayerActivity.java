@@ -19,16 +19,20 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
+import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.fragments.*;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
+import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.views.MusicPlayerBottomPanel;
 
 import java.util.List;
 
 public class MusicPlayerActivity extends AppCompatActivity {
     private SongItemService service;
+
+    private MusicPlayerBottomPanel panel;
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -56,6 +60,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_music_player_menu);
 
+        this.panel = this.findViewById(R.id.music_player_bottom_panel);
+
         final BottomNavigationView navigationView = findViewById(R.id.music_player_navbar);
 
         navigationView.setOnItemSelectedListener(this.musicPlayerNavigationListener());
@@ -70,8 +76,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         return (item) -> {
             final FragmentManager fragmentManager = MusicPlayerActivity.this.getSupportFragmentManager();
 
-            final MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
-
             switch(item.getTitle().toString()) {
                 case "Home":
                     fragmentManager.beginTransaction()
@@ -85,14 +89,15 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                     songsMenuFragment.setFragmentEventListener("display_bottom_panel", (songsList) -> {
                         if (songsList instanceof List) {
-                            panel.setVisibility(View.VISIBLE);
+                            this.panel.setVisibility(View.VISIBLE);
 
-                            panel.setSongitemsList((List<SongsMenuItem>) songsList);
+                            this.panel.displayBottomPanel(AppConfig.getProperty("url", this)
+                                    + Endpoints.GET_SONGS, (List<SongsMenuItem>) songsList);
                         }
                     });
 
                     songsMenuFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
-                        panel.stopBottomPanel();
+                        this.panel.stopBottomPanel();
                     });
 
                     fragmentManager.beginTransaction()
@@ -104,13 +109,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 case "Playlists":
                     final PlaylistsMenuFragment playlistsMenuFragment = new PlaylistsMenuFragment(this.service);
 
-                    playlistsMenuFragment.setOnFragmentLifecycleChange((display, songsList) -> {
+                    playlistsMenuFragment.setOnFragmentLifecycleChange((display, songsList, url) -> {
                         if (display) {
-                            panel.setVisibility(View.VISIBLE);
+                            this.panel.setVisibility(View.VISIBLE);
 
-                            panel.setSongitemsList(songsList);
+                            this.panel.displayBottomPanel(url, songsList);
                         } else {
-                            panel.stopBottomPanel();
+                            this.panel.stopBottomPanel();
                         }
                     });
 
