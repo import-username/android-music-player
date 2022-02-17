@@ -26,4 +26,6 @@ public class Endpoints {
 
     // Requires query param of playlist id
     public static final String GET_PLAYLIST_SONGS = "/playlist/get-songs";
+
+    public static final String REMOVE_SONG_FROM_PLAYLIST = "/song/remove-from-playlist";
 }

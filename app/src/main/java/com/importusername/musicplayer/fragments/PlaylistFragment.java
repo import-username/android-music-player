@@ -2,9 +2,6 @@ package com.importusername.musicplayer.fragments;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,25 +10,19 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.ui.PlayerControlView;
-import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.SongListener;
-import com.importusername.musicplayer.activity.PlaylistAdapter;
+import com.importusername.musicplayer.adapters.playlistmenu.PlaylistAdapter;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.interfaces.BottomPanelInterface;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
-import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
 import com.importusername.musicplayer.util.AppConfig;
-import com.importusername.musicplayer.util.AppToast;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PlaylistFragment extends Fragment implements IBackPressFragment, BottomPanelInterface {

@@ -1,13 +1,14 @@
-package com.importusername.musicplayer.activity;
+package com.importusername.musicplayer.adapters.playlistmenu;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
-import android.view.KeyEvent;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -20,15 +21,15 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ui.PlayerControlView;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.importusername.musicplayer.R;
-import com.importusername.musicplayer.adapters.playlistmenu.PlaylistItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
-import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryEntity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
+import com.importusername.musicplayer.util.AppToast;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 
@@ -149,6 +150,18 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
                 playlistSongItem.setText(songItem.getSongName());
 
+                playlistSongItem.setOnOptionsClickListener(songItem, this.playlistItem);
+
+                playlistSongItem.setOnDeleteListener((deletedSongItem, playlistItem) -> {
+                    final int deletedItemPos = holder.getAbsoluteAdapterPosition();
+
+                    this.playlistSongsList.remove(deletedItemPos);
+
+                    this.activity.runOnUiThread(() -> {
+                        this.notifyItemRemoved(deletedItemPos);
+                    });
+                });
+
                 if (this.onItemClickListener != null) {
                     playlistSongItem.setClickListener(this.onItemClickListener, songItem, holder.getAbsoluteAdapterPosition() - 1);
                 }
@@ -247,6 +260,8 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         private final FragmentActivity activity;
 
+        private OnDeleteListener onDeleteListener;
+
         public PlaylistSongItem(@NonNull @NotNull View itemView, FragmentActivity activity) {
             super(itemView);
 
@@ -294,14 +309,60 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             thumbnailImageView.setVisibility(View.GONE);
         }
 
+        public void setOnOptionsClickListener(SongsMenuItem songsMenuItem, PlaylistItem playlistItem) {
+            this.constraintLayout.findViewById(R.id.music_item_options_button).setOnClickListener((v) -> {
+                final Context contextWrapper = new ContextThemeWrapper(this.activity, R.style.PopupMenu);
+
+                final PopupMenu popupMenu = new PopupMenu(contextWrapper, v);
+
+                popupMenu.setOnMenuItemClickListener((menuItem) -> {
+                    switch (menuItem.getTitle().toString()) {
+                        case "Remove from playlist":
+                            final String url = AppConfig.getProperty("url", this.activity)
+                                    + Endpoints.REMOVE_SONG_FROM_PLAYLIST
+                                    + "/" + songsMenuItem.getSongId()
+                                    + "/" + playlistItem.getPlaylistId();
+
+                            final MusicPlayerRequestThread thread = new MusicPlayerRequestThread(
+                                    url,
+                                    RequestMethod.PATCH,
+                                    this.activity,
+                                    true,
+                                    (status, response, headers) -> {
+                                        if (status == 200 && PlaylistSongItem.this.onDeleteListener != null) {
+                                            PlaylistSongItem.this.onDeleteListener.delete(songsMenuItem, playlistItem);
+                                        }
+                                    }
+                            );
+
+                            thread.start();
+                            break;
+                    }
+
+                    return true;
+                });
+
+                popupMenu.inflate(R.menu.playlist_song_item_popup);
+                popupMenu.show();
+            });
+        }
+
         public void setClickListener(PlaylistSongItem.OnClickListener onClickListener, SongsMenuItem songsMenuItem, int index) {
             this.constraintLayout.setOnClickListener((v) -> {
                 onClickListener.click(songsMenuItem, index);
             });
         }
 
+        public void setOnDeleteListener(OnDeleteListener onDeleteListener) {
+            this.onDeleteListener = onDeleteListener;
+        }
+
         public interface OnClickListener {
             void click(SongsMenuItem songItem, int index);
+        }
+
+        public interface OnDeleteListener {
+            void delete(SongsMenuItem songsMenuItem, PlaylistItem playlistItem);
         }
     }
 }
