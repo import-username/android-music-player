@@ -59,7 +59,7 @@
                 app:layout_constraintVertical_bias="0.03"
                 android:textColor="@color/white"
                 android:maxLines="1"
-                android:maxLength="18"
+                android:maxLength="32"
                 android:ellipsize="end"
                 android:textSize="18sp"
                 android:textStyle="bold"

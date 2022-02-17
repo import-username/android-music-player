@@ -5,11 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -18,22 +15,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.OnLifecycleEvent;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
-import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.AppSettings;
 import com.importusername.musicplayer.fragments.*;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
-import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
-import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.views.MusicPlayerBottomPanel;
 
 import java.util.List;
@@ -81,6 +70,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
         return (item) -> {
             final FragmentManager fragmentManager = MusicPlayerActivity.this.getSupportFragmentManager();
 
+            final MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
+
             switch(item.getTitle().toString()) {
                 case "Home":
                     fragmentManager.beginTransaction()
@@ -92,8 +83,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 case "Songs":
                     final SongsMenuFragment songsMenuFragment = new SongsMenuFragment(this.service);
 
-                    MusicPlayerBottomPanel panel = this.findViewById(R.id.music_player_bottom_panel);
-
                     songsMenuFragment.setFragmentEventListener("display_bottom_panel", (songsList) -> {
                         if (songsList instanceof List) {
                             panel.setVisibility(View.VISIBLE);
@@ -103,7 +92,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     });
 
                     songsMenuFragment.setFragmentEventListener("close_bottom_panel", (data) -> {
-                        panel.disableBottomPanel();
+                        panel.stopBottomPanel();
                     });
 
                     fragmentManager.beginTransaction()
@@ -113,8 +102,20 @@ public class MusicPlayerActivity extends AppCompatActivity {
                             .commit();
                     break;
                 case "Playlists":
+                    final PlaylistsMenuFragment playlistsMenuFragment = new PlaylistsMenuFragment(this.service);
+
+                    playlistsMenuFragment.setOnFragmentLifecycleChange((display, songsList) -> {
+                        if (display) {
+                            panel.setVisibility(View.VISIBLE);
+
+                            panel.setSongitemsList(songsList);
+                        } else {
+                            panel.stopBottomPanel();
+                        }
+                    });
+
                     fragmentManager.beginTransaction()
-                            .replace(R.id.music_player_fragment_view, new PlaylistsMenuFragment(this.service), null)
+                            .replace(R.id.music_player_fragment_view, playlistsMenuFragment, null)
                             .setReorderingAllowed(true)
                             .addToBackStack("PlaylistsFragment")
                             .commit();

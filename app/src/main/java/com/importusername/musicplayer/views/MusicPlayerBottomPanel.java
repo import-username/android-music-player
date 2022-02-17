@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 // TODO - fix issue where pause/play button not in correct state when displaying from song menu
+// TODO - url that layout uses to query more songs from backend should be changeable
 public class MusicPlayerBottomPanel extends ConstraintLayout {
     private SongItemService service;
 
@@ -136,7 +137,17 @@ public class MusicPlayerBottomPanel extends ConstraintLayout {
         this.onCloseListener = listener;
     }
 
-    public void disableBottomPanel() {
+    /**
+     * Displays bottom panel, continues playing songs with provided list, and continues buffering song list
+     * for a fluent transition from playlist/song menus to another menu to avoid stopping/restarting audio.
+     * @param songRequestsUrl Url that should be used to request more songs if available.
+     * @param songsList The current array of song items used to play media in exoplayer.
+     */
+    public void displayBottomPanel(String songRequestsUrl, List<SongsMenuItem> songsList) {
+        // TODO
+    }
+
+    public void stopBottomPanel() {
         if (this.bottomPanelListener != null) {
             this.service.getExoPlayer().removeListener(this.bottomPanelListener);
         }

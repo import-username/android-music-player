@@ -19,6 +19,7 @@ import com.importusername.musicplayer.adapters.playlistmenu.PlaylistMenuAdapter;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
 import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.interfaces.BottomPanelInterface;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
@@ -29,8 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaylistsMenuFragment extends Fragment implements IBackPressFragment {
+public class PlaylistsMenuFragment extends Fragment implements IBackPressFragment, BottomPanelInterface {
     private Context context;
+
+    private OnFragmentLifecycleChange OnlifecycleChangeListener;
 
     private PlaylistMenuAdapter playlistMenuAdapter;
 
@@ -136,6 +139,8 @@ public class PlaylistsMenuFragment extends Fragment implements IBackPressFragmen
 
                     final PlaylistFragment playlistFragment = new PlaylistFragment(item, songsMenuItems, this.songItemService);
 
+                    playlistFragment.setOnFragmentLifecycleChange(this.OnlifecycleChangeListener);
+
                     fragmentTransaction
                                 .replace(R.id.playlist_menu_fragment_container, playlistFragment, null)
                                 .setReorderingAllowed(true)
@@ -157,5 +162,10 @@ public class PlaylistsMenuFragment extends Fragment implements IBackPressFragmen
         }
 
         return false;
+    }
+
+    @Override
+    public void setOnFragmentLifecycleChange(OnFragmentLifecycleChange listener) {
+        this.OnlifecycleChangeListener = listener;
     }
 }

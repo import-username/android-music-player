@@ -23,6 +23,7 @@ import com.importusername.musicplayer.activity.PlaylistAdapter;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
+import com.importusername.musicplayer.interfaces.BottomPanelInterface;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
@@ -33,7 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaylistFragment extends Fragment implements IBackPressFragment {
+public class PlaylistFragment extends Fragment implements IBackPressFragment, BottomPanelInterface {
+    private BottomPanelInterface.OnFragmentLifecycleChange onFragmentLifecycleChange;
+
     private PlaylistAdapter playlistAdapter;
 
     private final PlaylistItem playlistItem;
@@ -58,7 +61,8 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment {
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable @org.jetbrains.annotations.Nullable ViewGroup container, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.playlist_menu, container, false);
 
-        // TODO - hide bottom panel here
+        this.onFragmentLifecycleChange.displayBottomPanel(false, null);
+
         this.songItemService.stopPlayer();
 
         this.songListener = new SongListener(
@@ -124,18 +128,28 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        this.onFragmentLifecycleChange.displayBottomPanel(false, null);
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
 
         this.songItemService.removePlayerListener(this.songListener);
-        // TODO - maybe implement bottom panel playback functionality
 
-        this.songItemService.stopPlayer();
-        this.songItemService.resetNotification();
+        this.onFragmentLifecycleChange.displayBottomPanel(true, this.songsMenuItemList);
     }
 
     @Override
     public boolean shouldAllowBackPress() {
         return true;
+    }
+
+    @Override
+    public void setOnFragmentLifecycleChange(OnFragmentLifecycleChange listener) {
+        this.onFragmentLifecycleChange = listener;
     }
 }
