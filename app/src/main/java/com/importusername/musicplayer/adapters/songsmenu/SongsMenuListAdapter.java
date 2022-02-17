@@ -222,6 +222,17 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 songViewHolder.setText(songItem.getSongName());
                 songViewHolder.setClickListener(songItem);
                 songViewHolder.setOnOptionsListener(songItem);
+
+                songViewHolder.setOnDeleteListener((deletedSongItem) -> {
+                    final int deletedItemPos = holder.getAbsoluteAdapterPosition();
+
+                    SongsMenuListAdapter.this.songsMenuArray.remove(deletedItemPos);
+
+                    SongsMenuListAdapter.this.activity.runOnUiThread(() -> {
+                        SongsMenuListAdapter.this.notifyItemRemoved(deletedItemPos);
+                    });
+                });
+
                 songViewHolder.setOnAddPlaylistListener(() -> {
                      if (SongsMenuListAdapter.this.onAddPlaylistClick != null) {
                          SongsMenuListAdapter.this.onAddPlaylistClick.click(songItem);
@@ -285,6 +296,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         private OnAddPlaylistClickListener addPlaylistClickListener;
 
+        private OnDeleteListener onDeleteListener;
+
         public ViewHolder(@NonNull @NotNull View itemView, FragmentActivity activity, ISongItemListener clickListener) {
             super(itemView);
 
@@ -295,6 +308,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         public void setText(String text) {
             ((TextView) this.constraintLayout.findViewById(R.id.songs_menu_music_item_title)).setText(text);
+        }
+
+        public void setOnDeleteListener(OnDeleteListener onDeleteListener) {
+            this.onDeleteListener = onDeleteListener;
         }
 
         public void setItemThumbnail(String id) {
@@ -348,6 +365,25 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 popupMenu.setOnMenuItemClickListener((menuItem) -> {
                     switch (menuItem.getTitle().toString()) {
                         case "Delete":
+                            final String url = AppConfig.getProperty("url", this.fragmentActivity)
+                                    + Endpoints.DELETE_SONG
+                                    + "/"
+                                    + songsMenuItem.getSongId();
+
+                            final MusicPlayerRequestThread thread = new MusicPlayerRequestThread(
+                                    url,
+                                    RequestMethod.DELETE,
+                                    this.fragmentActivity,
+                                    true,
+                                    (status, response, headers) -> {
+                                        if (status == 200 && ViewHolder.this.onDeleteListener != null) {
+                                            ViewHolder.this.onDeleteListener.delete(songsMenuItem);
+                                        }
+                                    }
+                            );
+
+                            thread.start();
+
                             break;
                         case "Add to playlist":
                             if (this.addPlaylistClickListener != null) {
@@ -363,8 +399,6 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 popupMenu.show();
             });
         }
-
-        public void setOnDeleteListener() {}
 
         public void setOnAddPlaylistListener(OnAddPlaylistClickListener listener) {
             this.addPlaylistClickListener = listener;
@@ -392,5 +426,9 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     public interface OnAddPlaylistClick {
         void click(SongsMenuItem clickedSong);
+    }
+
+    public interface OnDeleteListener {
+        void delete(SongsMenuItem songsMenuItem);
     }
 }
