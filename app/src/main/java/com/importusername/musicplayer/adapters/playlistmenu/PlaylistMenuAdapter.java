@@ -93,13 +93,12 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             PlaylistMenuAdapter.this.notifyDataSetChanged();
 
                             final RecyclerView recyclerView = PlaylistMenuAdapter.this.activity.findViewById(R.id.playlist_menu_recyclerview);
-                            // TODO - remove load screen here
-    //                        final ConstraintLayout constraintLayout = PlaylistMenuAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
+                            final ConstraintLayout constraintLayout = PlaylistMenuAdapter.this.activity.findViewById(R.id.playlist_menu_loading_view);
 
-    //                        if (recyclerView.getVisibility() == View.GONE) {
-    //                            constraintLayout.setVisibility(View.GONE);
-    //                            recyclerView.setVisibility(View.VISIBLE);
-    //                        }
+                            if (recyclerView.getVisibility() == View.GONE) {
+                                constraintLayout.setVisibility(View.GONE);
+                                recyclerView.setVisibility(View.VISIBLE);
+                            }
                         });
                     }
                 });
