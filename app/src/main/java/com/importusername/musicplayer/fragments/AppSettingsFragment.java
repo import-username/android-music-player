@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.enums.AppSettings;
@@ -24,13 +25,17 @@ public class AppSettingsFragment extends Fragment implements IBackPressFragment 
     public View onCreateView(@NonNull @NotNull LayoutInflater inflater, @Nullable @org.jetbrains.annotations.Nullable ViewGroup container, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.app_settings_menu_fragment, container, false);
 
+        ((Toolbar) view.findViewById(R.id.account_settings_toolbar)).setNavigationOnClickListener((v) -> {
+            this.getActivity().onBackPressed();
+        });
+
         ((AppSettingsToggleButton) view.findViewById(R.id.play_audio_in_app_background_toggle)).setPreferenceName(
                 AppSettings.PLAY_IN_BACKGROUND.getSettingName()
         );
 
-        ((AppSettingsToggleButton) view.findViewById(R.id.play_audio_in_bottom_panel_toggle)).setPreferenceName(
-                AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName()
-        );
+//        ((AppSettingsToggleButton) view.findViewById(R.id.play_audio_in_bottom_panel_toggle)).setPreferenceName(
+//                AppSettings.CONTINUE_BOTTOM_PANEL_PLAYING.getSettingName()
+//        );
 
         return view;
     }

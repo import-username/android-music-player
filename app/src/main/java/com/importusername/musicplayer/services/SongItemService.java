@@ -44,6 +44,11 @@ public class SongItemService extends Service {
     private final String defaultNotifTitle = "Nothing's playing";
     private final String defaultNotifContent = "...";
 
+    private final NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setSmallIcon(R.drawable.outline_music_note_24);
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String channelId;
@@ -69,10 +74,12 @@ public class SongItemService extends Service {
     private String createNotificationChannel() {
         String channelId = NOTIFICATION_CHANNEL_ID;
 
-        notificationManager.createNotificationChannel(new NotificationChannel(
+        final NotificationChannel notificationChannel = new NotificationChannel(
                 channelId,
-                "SongItemService Channel",
-                NotificationManager.IMPORTANCE_DEFAULT));
+                "Song Service Channel",
+                NotificationManager.IMPORTANCE_DEFAULT);
+        notificationChannel.setShowBadge(false);
+        notificationManager.createNotificationChannel(notificationChannel);
 
         return channelId;
     }
@@ -182,11 +189,7 @@ public class SongItemService extends Service {
     public void displayNotification(String title, String contentText) {
         Log.i("SONG SERVICE", "Updating notification: " + title);
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .setOngoing(true)
-                .setContentTitle(title)
-                .setContentText(contentText)
-                .setSmallIcon(R.drawable.outline_music_note_24);
+        this.notificationBuilder.setContentTitle(title).setContentText(contentText);
 
         Notification notification = notificationBuilder.build();
 
