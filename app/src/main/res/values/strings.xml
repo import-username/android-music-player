@@ -47,4 +47,5 @@
     <string name="create_playlist_item_title_hint"><font color="#DB1D40">PLAYLIST</font> TITLE</string>
     <string name="create_playlist_button_text">CREATE PLAYLIST</string>
     <string name="add_to_playlist_title">Add <font color="#DB1D40">song</font> to playlist.</string>
+    <string name="music_item_options">Options</string>
 </resources>
