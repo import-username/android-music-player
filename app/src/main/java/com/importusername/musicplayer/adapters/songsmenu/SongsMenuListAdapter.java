@@ -70,6 +70,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     private final SongsQueryEntity songsQueryEntity = new SongsQueryEntity();
 
+    private boolean populatingDataset = false;
+
+    private int populatedPosition = 0;
+
     /**
      * Initialize songs menu array
      * @param songsMenuArray Array containing list of user songs.
@@ -104,7 +108,9 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
      * Sends a request to get user songs and populates songsMenuArray with song item objects.
      */
     public void populateSongsDataset() {
-        if (this.automaticallyGetSongs) {
+        if (this.automaticallyGetSongs && !this.populatingDataset) {
+            this.populatingDataset = true;
+
             final SongsQueryUri songsQueryUri = new SongsQueryUri();
             songsQueryUri.setSongQueryHost(this.queryUri);
             songsQueryUri.addQueryParam("includeTotal", "true");
@@ -125,6 +131,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                             }
 
                             SongsMenuListAdapter.this.notifyDataSetChanged();
+
+                            this.populatingDataset = false;
 
                             final RecyclerView recyclerView = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_recyclerview);
                             final ConstraintLayout constraintLayout = SongsMenuListAdapter.this.activity.findViewById(R.id.songs_menu_loading_view);
@@ -250,7 +258,9 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         // If there are more songs to get from the server, automatically load them when the 10th item has been binded to view.
         if (this.getSongItemCount() < this.totalRows) {
-            if (position > 0 && position % 10 == 0) {
+            if (position > 0 && position % 40 == 0 && position > this.populatedPosition) {
+                this.populatedPosition = position;
+
                 this.populateSongsDataset();
             }
         }

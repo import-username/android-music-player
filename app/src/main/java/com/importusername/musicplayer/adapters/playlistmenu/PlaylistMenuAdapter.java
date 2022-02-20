@@ -178,7 +178,7 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                 break;
         }
-
+        // TODO
         if (this.getPlaylistItemCount() < this.totalPlaylists) {
             if (position > 0 && position % 10 == 0) {
                 this.populatePlaylistDataset();

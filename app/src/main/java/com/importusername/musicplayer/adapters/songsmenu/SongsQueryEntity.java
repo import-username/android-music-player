@@ -13,14 +13,14 @@ import org.json.JSONObject;
 public class SongsQueryEntity {
     private int skip = 0;
 
-    private int limit = 12;
+    private int limit = 50;
 
     /**
      * Resets the skip and limit counts to original value.
      */
     public void reset() {
         this.skip = 0;
-        this.limit = 12;
+        this.limit = 50;
     }
 
     public void queryNextSong(Context context, SongsQueryUri songsQueryUri, OnSongQueryListener onSongQueryListener) {
