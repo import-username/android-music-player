@@ -1,5 +1,6 @@
 package com.importusername.musicplayer.adapters.songsmenu;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,6 +8,7 @@ import android.net.Uri;
 import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -154,6 +156,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.songsMenuArray.clear();
         this.songsMenuArray.add(null);
 
+        this.notifyDataSetChanged();
+
         // Reset query entity to reset skip field to 0.
         this.songsQueryEntity.reset();
 
@@ -192,18 +196,6 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                             return true;
                         });
 
-                view.findViewById(R.id.songs_menu_search_bar_icon)
-                        .setOnClickListener((v) -> {
-                            final String searchText = ((EditText) view.findViewById(R.id.songs_menu_search_bar_input))
-                                    .getText().toString();
-
-                            SongsMenuListAdapter.this.changeQueryUrl(Uri.parse(
-                                    AppConfig.getProperty("url", SongsMenuListAdapter.this.activity.getApplicationContext())
-                                            + Endpoints.GET_SONGS
-                                            + (searchText.length() > 0 ? "?titleIncludes=" + searchText : "")
-                            ));
-                        });
-
                 viewHolder = new ViewHolderHeader(view, this.addButtonListener);
                 break;
             case VIEW_MUSIC_ITEM:
@@ -223,6 +215,16 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void onBindViewHolder(@NonNull @NotNull RecyclerView.ViewHolder holder, int position) {
         switch (this.getItemViewType(position)) {
             case VIEW_HEADER:
+                final ViewHolderHeader header = (ViewHolderHeader) holder;
+
+                header.setOnSearchEnter((text) -> {
+                    SongsMenuListAdapter.this.changeQueryUrl(Uri.parse(
+                            AppConfig.getProperty("url", SongsMenuListAdapter.this.activity.getApplicationContext())
+                                    + Endpoints.GET_SONGS
+                                    + (text.length() > 0 ? "?titleIncludes=" + text : "")
+                    ));
+                });
+
                 break;
             case VIEW_MUSIC_ITEM:
                 final SongsMenuItem songItem = this.songsMenuArray.get(position);
@@ -247,7 +249,7 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                      }
                 });
 
-                if (songItem.getSongThumbnailId() != null) {
+                if (songItem.getSongThumbnailId() != null && songItem.getSongThumbnailId().split("/").length >= 2) {
                     ((ViewHolder) holder).setItemThumbnail(songItem.getSongThumbnailId().split("/")[2]);
                 } else {
                     ((ViewHolder) holder).clearThumbnail();
@@ -424,6 +426,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         private final View.OnClickListener addButtonListener;
 
+        private OnSearchEnter onSearchEnter;
+
         public ViewHolderHeader(@NonNull @NotNull View itemView, View.OnClickListener addButtonListener) {
             super(itemView);
 
@@ -431,6 +435,38 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
             constraintLayoutHeader = itemView.findViewById(R.id.songs_menu_header_container);
             itemView.findViewById(R.id.songs_menu_add_song_button).setOnClickListener(this.addButtonListener);
+
+            constraintLayoutHeader.findViewById(R.id.songs_menu_search_bar_input).setOnFocusChangeListener((view, focused) -> {
+                if (!focused) {
+                    InputMethodManager inputMethodManager =(InputMethodManager) this.constraintLayoutHeader.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+                    inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            });
+
+            constraintLayoutHeader.findViewById(R.id.songs_menu_search_bar_input)
+                    .setOnKeyListener((v, keyCode, event) -> {
+                        final String text = ((EditText) v).getText().toString();
+
+                        if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                            if (this.onSearchEnter != null) {
+                                this.onSearchEnter.enter(text);
+                            }
+                        }
+
+                        if (keyCode == KeyEvent.KEYCODE_DEL && event.getAction() == KeyEvent.ACTION_DOWN) {
+                            return false;
+                        }
+
+                        return false;
+                    });
+        }
+
+        public void setOnSearchEnter(OnSearchEnter onSearchEnter) {
+            this.onSearchEnter = onSearchEnter;
+        }
+
+        public interface OnSearchEnter {
+            void enter(String searchText);
         }
     }
 

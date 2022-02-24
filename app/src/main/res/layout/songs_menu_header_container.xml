@@ -4,7 +4,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/songs_menu_header_container">
+        android:id="@+id/songs_menu_header_container"
+        android:focusableInTouchMode="true"
+        android:clickable="true"
+        android:focusable="true">
     <TextView
             android:id="@+id/music_player_songs_menu_title"
             android:layout_width="wrap_content"
@@ -33,43 +36,22 @@
             android:textSize="20sp"
             android:textColor="@color/app_secondary_color"
             android:textStyle="bold"/>
-    <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/songs_menu_search_bar"
+    <EditText
+            android:id="@+id/songs_menu_search_bar_input"
             android:layout_width="0dp"
+            app:layout_constraintWidth_percent="0.7"
+            android:layout_marginTop="20dp"
             android:layout_height="50dp"
-            android:minWidth="200dp"
-            app:layout_constraintWidth_percent="0.8"
+            android:drawableStart="@drawable/outline_search_black_36"
             app:layout_constraintTop_toBottomOf="@id/songs_menu_add_song_button"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginTop="15dp"
-            android:background="@drawable/songs_search_bar">
-        <ImageView
-                android:id="@+id/songs_menu_search_bar_icon"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/outline_search_black_24"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintHorizontal_bias="0.03"
-                android:foregroundTint="@color/songs_menu_foreground_primary"/>
-        <EditText
-                android:id="@+id/songs_menu_search_bar_input"
-                android:layout_width="0dp"
-                app:layout_constraintHorizontal_weight="1"
-                android:layout_height="match_parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintLeft_toRightOf="@id/songs_menu_search_bar_icon"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:hint="@string/songs_menu_search_bar_hint"
-                android:textColor="@color/black"
-                android:background="@null"
-                android:inputType="textNoSuggestions"
-                android:paddingStart="8dp"
-                android:paddingEnd="0dp"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:hint="@string/songs_menu_search_bar_hint"
+            android:textColor="@color/black"
+            android:background="@drawable/songs_search_bar"
+            android:inputType="textNoSuggestions"
+            android:imeOptions="actionSearch"
+            android:paddingStart="8dp"
+            android:paddingEnd="0dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
