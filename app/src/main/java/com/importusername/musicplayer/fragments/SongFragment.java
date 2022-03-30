@@ -1,6 +1,8 @@
 package com.importusername.musicplayer.fragments;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -120,6 +122,7 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
             final ImageView thumbnail = view.findViewById(R.id.song_menu_image_custom);
             final ImageView defaultThumbnail = view.findViewById(R.id.song_menu_image_default);
+            view.findViewById(R.id.song_menu_image_container).setBackgroundColor(Color.TRANSPARENT);
 
             defaultThumbnail.setVisibility(View.GONE);
             thumbnail.setVisibility(View.VISIBLE);
