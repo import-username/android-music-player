@@ -56,6 +56,8 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private ExoPlayer player;
 
+    private OnBackPressed onBackPressed;
+
     public PlaylistAdapter(PlaylistItem playlistItem, FragmentActivity fragmentActivity) {
         this.playlistItem = playlistItem;
         this.activity = fragmentActivity;
@@ -73,6 +75,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public void setOnItemClickListener(PlaylistSongItem.OnClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
+    }
+
+    public void setOnBackPressed(OnBackPressed onBackPressed) {
+        this.onBackPressed = onBackPressed;
     }
 
     public void setExoplayer(ExoPlayer player) {
@@ -159,6 +165,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case PLAYLIST_HEADER:
                 ((PlaylistHeader) holder).setTitle(this.playlistItem.getPlaylistName());
 
+                if (this.onBackPressed != null) {
+                    ((PlaylistHeader) holder).setOnBackPressed(this.onBackPressed);
+                }
+
                 if (this.playlistItem.getPlaylistThumbnailId() != null) {
                     ((PlaylistHeader) holder).setThumbnail(this.playlistItem.getPlaylistThumbnailId().split("/")[2]);
                 }
@@ -223,11 +233,19 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static class PlaylistHeader extends RecyclerView.ViewHolder {
         private final ConstraintLayout headerLayout;
 
+        private OnBackPressed onBackPressed;
+
         public PlaylistHeader(@NonNull @NotNull View itemView) {
             super(itemView);
 
             this.headerLayout = itemView.findViewById(R.id.playlist_header_container);
             this.headerLayout.findViewById(R.id.playlist_menu_song_name).setSelected(true);
+
+            this.headerLayout.findViewById(R.id.playlist_menu_back_button).setOnClickListener((v) -> {
+                if (this.onBackPressed != null) {
+                    this.onBackPressed.backPress();
+                }
+            });
 
             this.headerLayout.findViewById(R.id.playlist_menu_media_overlay).setOnClickListener((v) -> {
                 this.headerLayout.findViewById(R.id.playlist_menu_media_overlay).setVisibility(View.GONE);
@@ -240,6 +258,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             this.headerLayout.findViewById(R.id.playlist_menu_custom_thumbnail).setOnClickListener((v) -> {
                 this.headerLayout.findViewById(R.id.playlist_menu_media_overlay).setVisibility(View.VISIBLE);
             });
+        }
+
+        public void setOnBackPressed(OnBackPressed onBackPressed) {
+            this.onBackPressed = onBackPressed;
         }
 
         public void setTitle(String title) {
@@ -402,5 +424,9 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public interface OnDeleteListener {
             void delete(SongsMenuItem songsMenuItem, PlaylistItem playlistItem);
         }
+    }
+
+    public interface OnBackPressed {
+        void backPress();
     }
 }

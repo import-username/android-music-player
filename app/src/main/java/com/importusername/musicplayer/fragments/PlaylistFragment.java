@@ -132,6 +132,9 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
         });
         this.playlistAdapter.setExoplayer(this.songItemService.getExoPlayer());
         this.playlistAdapter.setOnMenuRefresh(this.onRefreshComplete());
+        this.playlistAdapter.setOnBackPressed(() -> {
+            this.getParentFragmentManager().popBackStack();
+        });
 
         recyclerView.setAdapter(this.playlistAdapter);
 

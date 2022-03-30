@@ -99,6 +99,10 @@ public class SongFragment extends EventFragment implements IBackPressFragment {
 
         final View view = inflater.inflate(R.layout.song_menu_layout, container, false);
 
+        view.findViewById(R.id.song_menu_back_button).setOnClickListener((v) -> {
+            this.getParentFragmentManager().popBackStack();
+        });
+
         this.emitFragmentEvent("close_bottom_panel", null);
 
         ((TextView) view.findViewById(R.id.song_menu_title_view)).setText(this.initialSongItem.getSongName());
