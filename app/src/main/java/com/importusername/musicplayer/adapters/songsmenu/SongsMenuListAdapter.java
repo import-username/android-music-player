@@ -148,6 +148,17 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+    public void refreshDataset() {
+        this.songsMenuArray.clear();
+        this.songsMenuArray.add(null);
+
+        this.notifyDataSetChanged();
+
+        this.songsQueryEntity.reset();
+
+        this.populateSongsDataset();
+    }
+
     public void changeQueryUrl(Uri uri) {
         // This uri will be used for all queries until changed again
         this.queryUri = uri;

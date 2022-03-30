@@ -1,9 +1,7 @@
 package com.importusername.musicplayer.fragments;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,23 +11,16 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
-import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
-import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.ISongItemListener;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
-import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -171,7 +162,9 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
 
             // Repopulate song list adapter's dataset when child fragment emits refresh_dataset event.
             createSongMenuFragment.setFragmentEventListener("refresh_dataset", (data) -> {
-                SongsMenuFragment.this.songsMenuListAdapter.populateSongsDataset();
+                this.getActivity().runOnUiThread(() -> {
+                    SongsMenuFragment.this.songsMenuListAdapter.refreshDataset();
+                });
             });
 
             createSongMenuFragment.setFragmentEventListener("redirect_to_song", (data) -> {

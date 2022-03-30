@@ -93,7 +93,9 @@ public class PlaylistsMenuFragment extends Fragment implements IBackPressFragmen
             final CreatePlaylistFragment playlistFragment = new CreatePlaylistFragment();
 
             playlistFragment.setFragmentEventListener("refresh_dataset", (data) -> {
-                PlaylistsMenuFragment.this.playlistMenuAdapter.populatePlaylistDataset();
+                this.getActivity().runOnUiThread(() -> {
+                    PlaylistsMenuFragment.this.playlistMenuAdapter.refreshDataset();
+                });
             });
 
             playlistFragment.setFragmentEventListener("redirect_to_playlist", (data) -> {

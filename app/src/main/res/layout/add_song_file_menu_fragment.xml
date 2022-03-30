@@ -33,4 +33,21 @@
             android:text="@string/add_song_menu_button_text"
             android:textColor="@color/white"
             android:textSize="17sp"/>
+    <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/create_song_from_youtube_button"
+            android:layout_width="0dp"
+            android:minWidth="200dp"
+            android:maxWidth="300dp"
+            android:layout_height="60dp"
+            app:layout_constraintWidth_percent="0.6"
+            app:layout_constraintTop_toBottomOf="@id/add_song_file_button"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.1"
+            android:background="@drawable/create_item_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:text="@string/add_song_from_youtube"
+            android:textColor="@color/white"
+            android:textSize="17sp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

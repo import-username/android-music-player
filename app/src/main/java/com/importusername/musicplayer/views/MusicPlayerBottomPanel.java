@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+// TODO - add song duration text to bottom panel
+// TODO - add ability to open song menu corresponding to playing song (without resetting playback) on bottom panel press.
 // TODO - fix issue where pause/play button not in correct state when displaying from song menu
 public class MusicPlayerBottomPanel extends ConstraintLayout {
     private SongItemService service;

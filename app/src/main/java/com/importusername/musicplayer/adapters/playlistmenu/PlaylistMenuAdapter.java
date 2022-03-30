@@ -104,6 +104,17 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 });
     }
 
+    public void refreshDataset() {
+        this.playlistMenuArray.clear();
+        this.playlistMenuArray.add(null);
+
+        this.notifyDataSetChanged();
+
+        this.playlistQueryEntity.reset();
+
+        this.populatePlaylistDataset();
+    }
+
     @NonNull
     @NotNull
     @Override

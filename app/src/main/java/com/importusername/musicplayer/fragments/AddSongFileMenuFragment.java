@@ -19,6 +19,7 @@ import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
 import com.importusername.musicplayer.http.MultipartRequestEntity;
+import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.threads.MultipartRequestThread;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.InputStream;
 import java.net.URLConnection;
 
-public class AddSongFileMenuFragment extends EventFragment {
+public class AddSongFileMenuFragment extends EventFragment implements IBackPressFragment {
     private ActivityResultLauncher<Intent> directoryTreeActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -68,8 +69,25 @@ public class AddSongFileMenuFragment extends EventFragment {
                              @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.add_song_file_menu_fragment, container, false);
 
+        this.getParentFragmentManager().popBackStack();
+
         view.findViewById(R.id.add_song_file_button).setOnClickListener((View clickView) -> {
             AddSongFileMenuFragment.this.displayDirectoryTree();
+        });
+
+        view.findViewById(R.id.create_song_from_youtube_button).setOnClickListener((v) -> {
+            final CreateSongFromLinkFragment createSongFromLinkFragment = new CreateSongFromLinkFragment();
+
+            createSongFromLinkFragment.setOnRequestCompleteListener(() -> {
+                this.getParentFragmentManager().popBackStack();
+                this.emitFragmentEvent("refresh_dataset", null);
+            });
+
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.create_song_menu_fragment, createSongFromLinkFragment, null)
+                    .setReorderingAllowed(true)
+                    .addToBackStack("Create Song From Yt Link")
+                    .commit();
         });
 
         return view;
@@ -80,5 +98,10 @@ public class AddSongFileMenuFragment extends EventFragment {
         fileChooserIntent.setType("audio/*");
 
         directoryTreeActivityResult.launch(fileChooserIntent);
+    }
+
+    @Override
+    public boolean shouldAllowBackPress() {
+        return true;
     }
 }

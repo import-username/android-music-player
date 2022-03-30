@@ -25,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+// TODO - highlight playing song with a left border or something
+// TODO - change background to playlist thumbnail when scrolling down
+// TODO - display media control toolbar to top when scrolling down
 public class PlaylistFragment extends Fragment implements IBackPressFragment, BottomPanelInterface {
     private BottomPanelInterface.OnFragmentLifecycleChange onFragmentLifecycleChange;
 

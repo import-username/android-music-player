@@ -48,4 +48,7 @@
     <string name="create_playlist_button_text">CREATE PLAYLIST</string>
     <string name="add_to_playlist_title">Add <font color="#DB1D40">song</font> to playlist.</string>
     <string name="music_item_options">Options</string>
+    <string name="add_song_from_youtube">Add From Youtube</string>
+    <string name="create_song_from_yt_title">Paste in a <font color="#DB1D40">youtube</font> video url.</string>
+    <string name="upload_youtube_link"><font color="#DB1D40">Upload</font> Link</string>
 </resources>

@@ -28,4 +28,6 @@ public class Endpoints {
     public static final String GET_PLAYLIST_SONGS = "/playlist/get-songs";
 
     public static final String REMOVE_SONG_FROM_PLAYLIST = "/song/remove-from-playlist";
+
+    public static final String CREATE_FROM_YT = "/song/create-from-yt";
 }

@@ -29,6 +29,8 @@ import com.importusername.musicplayer.views.MusicPlayerBottomPanel;
 
 import java.util.List;
 
+// TODO - make every menu pull-refreshable
+// TODO - handle uploading song in a background service
 public class MusicPlayerActivity extends AppCompatActivity {
     private SongItemService service;
 
