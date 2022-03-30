@@ -11,12 +11,14 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.ISongItemListener;
+import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
 import com.importusername.musicplayer.util.AppConfig;
@@ -66,9 +68,28 @@ public class SongsMenuFragment extends EventFragment implements IBackPressFragme
                 true);
 
         songsMenuListAdapter.setOnAddPlaylistClickListener(this.onAddPlaylistClick());
+        songsMenuListAdapter.setOnRefreshComplete(this.onRefreshComplete());
         recyclerView.setAdapter(songsMenuListAdapter);
 
+        ((SwipeRefreshLayout) view.findViewById(R.id.songs_menu_swipe_refresh_layout)).setOnRefreshListener(() -> {
+            final SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.songs_menu_swipe_refresh_layout);
+
+            swipeRefreshLayout.setRefreshing(true);
+
+            this.songsMenuListAdapter.refreshDataset();
+        });
+
         return view;
+    }
+
+    private OnRefreshComplete onRefreshComplete() {
+        return () -> {
+            final SwipeRefreshLayout swipeRefreshLayout = this.getView().findViewById(R.id.songs_menu_swipe_refresh_layout);
+
+            if (swipeRefreshLayout.isRefreshing()) {
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        };
     }
 
     private SongsMenuListAdapter.OnAddPlaylistClick onAddPlaylistClick() {

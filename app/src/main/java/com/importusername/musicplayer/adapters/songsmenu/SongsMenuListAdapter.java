@@ -29,6 +29,7 @@ import com.importusername.musicplayer.fragments.SongsMenuFragment;
 import com.importusername.musicplayer.interfaces.IHttpRequestAction;
 import com.importusername.musicplayer.interfaces.ISongItemListener;
 import com.importusername.musicplayer.interfaces.IThumbnailRequestAction;
+import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.threads.ThumbnailRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
@@ -75,6 +76,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
     private boolean populatingDataset = false;
 
     private int populatedPosition = 0;
+
+    private OnRefreshComplete onRefreshComplete;
 
     /**
      * Initialize songs menu array
@@ -132,6 +135,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                                 }
                             }
 
+                            if (this.onRefreshComplete != null) {
+                                this.onRefreshComplete.refresh();
+                            }
+
                             SongsMenuListAdapter.this.notifyDataSetChanged();
 
                             this.populatingDataset = false;
@@ -146,6 +153,10 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                         });
                     });
         }
+    }
+
+    public void setOnRefreshComplete(OnRefreshComplete onRefreshComplete) {
+        this.onRefreshComplete = onRefreshComplete;
     }
 
     public void refreshDataset() {

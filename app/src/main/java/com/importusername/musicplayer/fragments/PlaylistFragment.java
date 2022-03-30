@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.exoplayer2.MediaItem;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.SongListener;
@@ -19,6 +20,7 @@ import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.interfaces.BottomPanelInterface;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
+import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.util.AppConfig;
 import org.jetbrains.annotations.NotNull;
@@ -87,6 +89,7 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
             this.songItemService.getExoPlayer().seekTo(index, 0);
         });
         this.playlistAdapter.setExoplayer(this.songItemService.getExoPlayer());
+        this.playlistAdapter.setOnMenuRefresh(this.onRefreshComplete());
 
         recyclerView.setAdapter(this.playlistAdapter);
 
@@ -113,7 +116,25 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
             this.songItemService.getExoPlayer().setPlayWhenReady(true);
         }
 
+        ((SwipeRefreshLayout) view.findViewById(R.id.playlist_menu_refresh_layout)).setOnRefreshListener(() -> {
+            final SwipeRefreshLayout swipeRefreshLayout = this.getView().findViewById(R.id.playlist_menu_refresh_layout);
+
+            swipeRefreshLayout.setRefreshing(true);
+
+            this.playlistAdapter.refreshDataset();
+        });
+
         return view;
+    }
+
+    private OnRefreshComplete onRefreshComplete() {
+        return () -> {
+            final SwipeRefreshLayout swipeRefreshLayout = this.getView().findViewById(R.id.playlist_menu_refresh_layout);
+
+            if (swipeRefreshLayout.isRefreshing()) {
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        };
     }
 
     private SongListener.OnSongChangeListener onSongChangeListener() {

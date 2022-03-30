@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistItem;
@@ -21,6 +22,7 @@ import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.interfaces.BottomPanelInterface;
 import com.importusername.musicplayer.interfaces.IBackPressFragment;
+import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.threads.BufferSongPlaylistThread;
 import com.importusername.musicplayer.util.AppConfig;
@@ -75,7 +77,27 @@ public class PlaylistsMenuFragment extends Fragment implements IBackPressFragmen
 
         recyclerView.setAdapter(this.playlistMenuAdapter);
 
+        this.playlistMenuAdapter.setOnRefreshComplete(onRefreshComplete());
+
+        ((SwipeRefreshLayout) view.findViewById(R.id.playlist_menu_swipe_refresh_layout)).setOnRefreshListener(() -> {
+            final SwipeRefreshLayout refreshLayout = view.findViewById(R.id.playlist_menu_swipe_refresh_layout);
+
+            refreshLayout.setRefreshing(true);
+
+            this.playlistMenuAdapter.refreshDataset();
+        });
+
         return view;
+    }
+
+    private OnRefreshComplete onRefreshComplete() {
+        return () -> {
+            final SwipeRefreshLayout refreshLayout = this.getView().findViewById(R.id.playlist_menu_swipe_refresh_layout);
+
+            if (refreshLayout.isRefreshing()) {
+                refreshLayout.setRefreshing(false);
+            }
+        };
     }
 
     private View.OnClickListener addPlaylistListener() {

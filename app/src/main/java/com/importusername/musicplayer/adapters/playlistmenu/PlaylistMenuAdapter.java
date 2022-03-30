@@ -22,6 +22,7 @@ import com.importusername.musicplayer.adapters.songsmenu.SongsQueryEntity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
+import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
@@ -49,6 +50,8 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private Uri playlistQueryUri;
 
     private final SongsQueryEntity playlistQueryEntity = new SongsQueryEntity();
+
+    private OnRefreshComplete onRefreshComplete;
 
     public PlaylistMenuAdapter(ArrayList<PlaylistItem> playlistMenuArray, FragmentActivity activity,
                                View.OnClickListener addPlaylistListener, OnPlaylistClick playlistClickListener) {
@@ -90,6 +93,10 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 }
                             }
 
+                            if (this.onRefreshComplete != null) {
+                                this.onRefreshComplete.refresh();
+                            }
+
                             PlaylistMenuAdapter.this.notifyDataSetChanged();
 
                             final RecyclerView recyclerView = PlaylistMenuAdapter.this.activity.findViewById(R.id.playlist_menu_recyclerview);
@@ -113,6 +120,10 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.playlistQueryEntity.reset();
 
         this.populatePlaylistDataset();
+    }
+
+    public void setOnRefreshComplete(OnRefreshComplete onRefreshComplete) {
+        this.onRefreshComplete = onRefreshComplete;
     }
 
     @NonNull

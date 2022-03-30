@@ -26,10 +26,10 @@ import com.importusername.musicplayer.adapters.songsmenu.SongsQueryEntity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
 import com.importusername.musicplayer.enums.RequestMethod;
+import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.threads.MusicPlayerRequestThread;
 import com.importusername.musicplayer.util.AppConfig;
 import com.importusername.musicplayer.util.AppCookie;
-import com.importusername.musicplayer.util.AppToast;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 
@@ -50,6 +50,8 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private final SongsQueryEntity songsQueryEntity = new SongsQueryEntity();
 
     private PlaylistSongItem.OnClickListener onItemClickListener;
+
+    private OnRefreshComplete onRefreshComplete;
 
     private ExoPlayer player;
 
@@ -93,10 +95,29 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                             }
                         }
 
+                        if (this.onRefreshComplete != null) {
+                            this.onRefreshComplete.refresh();
+                        }
+
                         PlaylistAdapter.this.notifyDataSetChanged();
                     });
                 }
         );
+    }
+
+    public void refreshDataset() {
+        this.playlistSongsList.clear();
+        this.playlistSongsList.add(null);
+
+        this.notifyDataSetChanged();
+
+        this.songsQueryEntity.reset();
+
+        this.populatePlaylistDataset();
+    }
+
+    public void setOnMenuRefresh(OnRefreshComplete onRefreshComplete) {
+        this.onRefreshComplete = onRefreshComplete;
     }
 
     @NonNull
