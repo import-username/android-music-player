@@ -2,18 +2,26 @@ package com.importusername.musicplayer.fragments;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.SongListener;
+import com.importusername.musicplayer.SongPlayerListener;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistAdapter;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
@@ -23,13 +31,12 @@ import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.util.AppConfig;
+import com.importusername.musicplayer.util.AppCookie;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 // TODO - highlight playing song with a left border or something
-// TODO - change background to playlist thumbnail when scrolling down
-// TODO - display media control toolbar to top when scrolling down
 public class PlaylistFragment extends Fragment implements IBackPressFragment, BottomPanelInterface {
     private BottomPanelInterface.OnFragmentLifecycleChange onFragmentLifecycleChange;
 
@@ -83,6 +90,47 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
 
         RecyclerView recyclerView = view.findViewById(R.id.playlist_recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getActivity(), LinearLayoutManager.VERTICAL, false));
+
+        recyclerView.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            private int currentYPos = 0;
+
+            private boolean headerVisible = false;
+
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                this.currentYPos += oldScrollY;
+
+                final ConstraintLayout stickyHeader = view.findViewById(R.id.playlist_sticky_header);
+
+                if (this.currentYPos < -830) {
+                    if (!this.headerVisible) {
+                        this.headerVisible = true;
+
+                        PlaylistFragment.this.updateStickyHeaderThumbnail();
+
+                        stickyHeader.setTranslationY(-300);
+
+                        stickyHeader.setVisibility(View.VISIBLE);
+
+                        stickyHeader.animate().setInterpolator(null);
+                        stickyHeader.animate().setDuration(100);
+                        stickyHeader.animate().translationY(0);
+                    }
+                } else {
+                    if (this.headerVisible) {
+                        this.headerVisible = false;
+
+                        stickyHeader.animate().translationY(-300);
+
+                        stickyHeader.animate().withEndAction(() -> {
+                            stickyHeader.setVisibility(View.GONE);
+
+                            PlaylistFragment.this.updateHeaderData();
+                        });
+                    }
+                }
+            }
+        });
 
         this.playlistAdapter = new PlaylistAdapter(this.playlistItem, this.getActivity());
         this.playlistAdapter.setOnItemClickListener((songItem, index) -> {
@@ -145,7 +193,37 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
             if (header != null) {
                 header.setPlayingTitle(songItem.getSongName());
             }
+
+            this.updateStickyHeaderThumbnail();
         };
+    }
+
+    private void updateHeaderData() {
+        final RecyclerView recyclerView = this.getView().findViewById(R.id.playlist_recyclerview);
+        final PlaylistAdapter.PlaylistHeader header = (PlaylistAdapter.PlaylistHeader) recyclerView.findViewHolderForAdapterPosition(0);
+
+        final SongsMenuItem songItem = this.playlistAdapter.getPlaylistSongsList().get(
+                this.songItemService.getExoPlayer().getCurrentMediaItemIndex() + 1
+        );
+
+        if (header != null) {
+            header.setPlayingTitle(songItem.getSongName());
+        }
+    }
+
+    private void updateStickyHeaderThumbnail() {
+        final RecyclerView recyclerView = this.getView().findViewById(R.id.playlist_recyclerview);
+        final ConstraintLayout stickyHeader = this.getView().findViewById(R.id.playlist_sticky_header);
+
+        final ImageView stickyHeaderThumbnail = stickyHeader.findViewById(R.id.playlist_sticky_header_thumbnail);
+
+        final PlaylistAdapter.PlaylistSongItem playlistSongItem = ((PlaylistAdapter.PlaylistSongItem) recyclerView.findViewHolderForAdapterPosition(
+                this.songItemService.getExoPlayer().getCurrentMediaItemIndex()+ 1
+        ));
+
+        if (playlistSongItem != null) {
+            stickyHeaderThumbnail.setImageDrawable(playlistSongItem.getThumbnail());
+        }
     }
 
     @Override

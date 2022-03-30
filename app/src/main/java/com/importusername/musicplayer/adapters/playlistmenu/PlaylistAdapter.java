@@ -1,6 +1,7 @@
 package com.importusername.musicplayer.adapters.playlistmenu;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -118,6 +119,10 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public void setOnMenuRefresh(OnRefreshComplete onRefreshComplete) {
         this.onRefreshComplete = onRefreshComplete;
+    }
+
+    public ArrayList<SongsMenuItem> getPlaylistSongsList() {
+        return new ArrayList<>(this.playlistSongsList);
     }
 
     @NonNull
@@ -274,6 +279,12 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     .load(glideUrl)
                     .into(thumbnailView);
         }
+
+        public Drawable getThumbnail() {
+            final ImageView thumbnailView = this.headerLayout.findViewById(R.id.playlist_menu_custom_thumbnail);
+
+            return thumbnailView.getDrawable();
+        }
     }
 
     public static class PlaylistSongItem extends RecyclerView.ViewHolder {
@@ -328,6 +339,12 @@ public class PlaylistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
             thumbnailDefaultIcon.setVisibility(View.VISIBLE);
             thumbnailImageView.setVisibility(View.GONE);
+        }
+
+        public Drawable getThumbnail() {
+            final ImageView thumbnailView = this.constraintLayout.findViewById(R.id.songs_menu_music_item_thumbnail);
+
+            return thumbnailView.getDrawable();
         }
 
         public void setOnOptionsClickListener(SongsMenuItem songsMenuItem, PlaylistItem playlistItem) {
