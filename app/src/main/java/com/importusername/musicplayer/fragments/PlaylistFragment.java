@@ -2,11 +2,11 @@ package com.importusername.musicplayer.fragments;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -14,14 +14,10 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.LazyHeaders;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.Player;
 import com.importusername.musicplayer.R;
 import com.importusername.musicplayer.SongListener;
-import com.importusername.musicplayer.SongPlayerListener;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistAdapter;
 import com.importusername.musicplayer.adapters.playlistmenu.PlaylistItem;
 import com.importusername.musicplayer.adapters.songsmenu.SongsMenuItem;
@@ -31,7 +27,6 @@ import com.importusername.musicplayer.interfaces.IBackPressFragment;
 import com.importusername.musicplayer.interfaces.OnRefreshComplete;
 import com.importusername.musicplayer.services.SongItemService;
 import com.importusername.musicplayer.util.AppConfig;
-import com.importusername.musicplayer.util.AppCookie;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -106,7 +101,7 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
                     if (!this.headerVisible) {
                         this.headerVisible = true;
 
-                        PlaylistFragment.this.updateStickyHeaderThumbnail();
+                        PlaylistFragment.this.updateStickyHeaderData();
 
                         stickyHeader.setTranslationY(-300);
 
@@ -172,6 +167,8 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
             this.playlistAdapter.refreshDataset();
         });
 
+        this.setStickyHeaderListeners(view);
+
         return view;
     }
 
@@ -194,7 +191,7 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
                 header.setPlayingTitle(songItem.getSongName());
             }
 
-            this.updateStickyHeaderThumbnail();
+            this.updateStickyHeaderData();
         };
     }
 
@@ -211,18 +208,51 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
         }
     }
 
-    private void updateStickyHeaderThumbnail() {
+    private void updateStickyHeaderData() {
         final RecyclerView recyclerView = this.getView().findViewById(R.id.playlist_recyclerview);
         final ConstraintLayout stickyHeader = this.getView().findViewById(R.id.playlist_sticky_header);
+        final SongsMenuItem songItem = this.playlistAdapter.getPlaylistSongsList().get(
+                this.songItemService.getExoPlayer().getCurrentMediaItemIndex() + 1
+        );
+        final ExoPlayer player = this.songItemService.getExoPlayer();
 
         final ImageView stickyHeaderThumbnail = stickyHeader.findViewById(R.id.playlist_sticky_header_thumbnail);
 
+        ((TextView) stickyHeader.findViewById(R.id.sticky_header_title)).setText(songItem.getSongName());
+
+        if (player.isPlaying()) {
+            stickyHeader.findViewById(R.id.sticky_header_pause).setVisibility(View.VISIBLE);
+            stickyHeader.findViewById(R.id.sticky_header_play).setVisibility(View.GONE);
+        } else {
+            stickyHeader.findViewById(R.id.sticky_header_pause).setVisibility(View.GONE);
+            stickyHeader.findViewById(R.id.sticky_header_play).setVisibility(View.VISIBLE);
+        }
+
         final PlaylistAdapter.PlaylistSongItem playlistSongItem = ((PlaylistAdapter.PlaylistSongItem) recyclerView.findViewHolderForAdapterPosition(
-                this.songItemService.getExoPlayer().getCurrentMediaItemIndex()+ 1
+                this.songItemService.getExoPlayer().getCurrentMediaItemIndex() + 1
         ));
 
         if (playlistSongItem != null) {
             stickyHeaderThumbnail.setImageDrawable(playlistSongItem.getThumbnail());
+        }
+    }
+
+    private void setStickyHeaderListeners(View view) {
+        final RecyclerView recyclerView = view.findViewById(R.id.playlist_recyclerview);
+        final ConstraintLayout stickyHeader = view.findViewById(R.id.playlist_sticky_header);
+
+        if (stickyHeader != null) {
+            stickyHeader.setOnClickListener((v) -> {
+                recyclerView.smoothScrollToPosition(0);
+            });
+
+            stickyHeader.findViewById(R.id.sticky_header_play).setOnClickListener((v) -> {
+                this.songItemService.playAudio();
+            });
+
+            stickyHeader.findViewById(R.id.sticky_header_pause).setOnClickListener((v) -> {
+                this.songItemService.pauseAudio();
+            });
         }
     }
 
