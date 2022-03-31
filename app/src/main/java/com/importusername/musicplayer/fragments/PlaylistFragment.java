@@ -46,6 +46,8 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
 
     private String songsRequestUrl;
 
+    private boolean stopped = false;
+
     public PlaylistFragment(PlaylistItem playlistItem, List<SongsMenuItem> songsMenuItemList, SongItemService service) {
         super(R.layout.playlist_menu);
 
@@ -262,7 +264,19 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
     public void onResume() {
         super.onResume();
 
+        if (this.stopped) {
+            this.songItemService.getExoPlayer().addListener(this.songListener);
+
+            if (this.getView().findViewById(R.id.playlist_sticky_header).getVisibility() == View.VISIBLE) {
+                this.updateStickyHeaderData();
+            } else {
+                this.updateHeaderData();
+            }
+        }
+
         this.onFragmentLifecycleChange.displayBottomPanel(false, null, this.songsRequestUrl);
+
+        this.stopped = false;
     }
 
     @Override
@@ -272,6 +286,8 @@ public class PlaylistFragment extends Fragment implements IBackPressFragment, Bo
         this.songItemService.removePlayerListener(this.songListener);
 
         this.onFragmentLifecycleChange.displayBottomPanel(true, this.songsMenuItemList, this.songsRequestUrl);
+
+        this.stopped = true;
     }
 
     @Override
