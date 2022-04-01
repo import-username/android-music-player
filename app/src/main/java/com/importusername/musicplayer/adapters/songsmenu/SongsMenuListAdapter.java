@@ -5,6 +5,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.EditorInfo;
@@ -50,6 +54,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final ArrayList<SongsMenuItem> songsMenuArray = new ArrayList<>();
@@ -203,20 +208,20 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.songs_menu_header_container, parent, false);
 
-                view.findViewById(R.id.songs_menu_search_bar_input)
-                        .setOnKeyListener((v, keyCode, event) -> {
-                            final String text = ((EditText) v).getText().toString();
-
-                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-                                SongsMenuListAdapter.this.changeQueryUrl(Uri.parse(
-                                        AppConfig.getProperty("url", SongsMenuListAdapter.this.activity.getApplicationContext())
-                                        + Endpoints.GET_SONGS
-                                        + (text.length() > 0 ? "?titleIncludes=" + ((EditText) v).getText() : "")
-                                ));
-                            }
-
-                            return true;
-                        });
+//                view.findViewById(R.id.songs_menu_search_bar_input)
+//                        .setOnKeyListener((v, keyCode, event) -> {
+//                            final String text = ((EditText) v).getText().toString();
+//
+//                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+//                                SongsMenuListAdapter.this.changeQueryUrl(Uri.parse(
+//                                        AppConfig.getProperty("url", SongsMenuListAdapter.this.activity.getApplicationContext())
+//                                        + Endpoints.GET_SONGS
+//                                        + (text.length() > 0 ? "?titleIncludes=" + ((EditText) v).getText() : "")
+//                                ));
+//                            }
+//
+//                            return true;
+//                        });
 
                 viewHolder = new ViewHolderHeader(view, this.addButtonListener);
                 break;
@@ -448,6 +453,8 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
         private final View.OnClickListener addButtonListener;
 
+        private final Handler handler = new Handler(Looper.getMainLooper());
+
         private OnSearchEnter onSearchEnter;
 
         public ViewHolderHeader(@NonNull @NotNull View itemView, View.OnClickListener addButtonListener) {
@@ -465,6 +472,20 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
                 }
             });
 
+            ((EditText) constraintLayoutHeader.findViewById(R.id.songs_menu_search_bar_input))
+                    .addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            sendSearchAfterTime(s.toString(), 1200);
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {}
+                    });
+
             constraintLayoutHeader.findViewById(R.id.songs_menu_search_bar_input)
                     .setOnKeyListener((v, keyCode, event) -> {
                         final String text = ((EditText) v).getText().toString();
@@ -481,6 +502,16 @@ public class SongsMenuListAdapter extends RecyclerView.Adapter<RecyclerView.View
 
                         return false;
                     });
+        }
+
+        private void sendSearchAfterTime(String search, int milliseconds) {
+            handler.postDelayed(() -> {
+                final String currentString = ((EditText) constraintLayoutHeader.findViewById(R.id.songs_menu_search_bar_input)).getText().toString();
+
+                if (currentString.equals(search)) {
+                    ViewHolderHeader.this.onSearchEnter.enter(search);
+                }
+            }, milliseconds);
         }
 
         public void setOnSearchEnter(OnSearchEnter onSearchEnter) {

@@ -1,12 +1,16 @@
 package com.importusername.musicplayer.adapters.playlistmenu;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -18,6 +22,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.importusername.musicplayer.R;
+import com.importusername.musicplayer.adapters.songsmenu.SongsMenuListAdapter;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryEntity;
 import com.importusername.musicplayer.adapters.songsmenu.SongsQueryUri;
 import com.importusername.musicplayer.constants.Endpoints;
@@ -126,6 +131,19 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.onRefreshComplete = onRefreshComplete;
     }
 
+    public void changeQueryUrl(Uri uri) {
+        this.playlistQueryUri = uri;
+
+        this.playlistMenuArray.clear();
+        this.playlistMenuArray.add(null);
+
+        this.notifyDataSetChanged();
+
+        this.playlistQueryEntity.reset();
+
+        this.populatePlaylistDataset();
+    }
+
     @NonNull
     @NotNull
     @Override
@@ -140,16 +158,16 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                 view.findViewById(R.id.playlist_menu_search_bar_input)
                         .setOnKeyListener((v, keyCode, event) -> {
-//                            final String text = ((EditText) v).getText().toString();
-//
-//                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-//                                PlaylistMenuAdapter.this.changeQueryUrl(Uri.parse(
-//                                        AppConfig.getProperty("url", PlaylistMenuAdapter.this.activity.getApplicationContext())
-//                                                + Endpoints.GET_SONGS
-//                                                + (text.length() > 0 ? "?titleIncludes=" + ((EditText) v).getText() : "")
-//                                ));
-//                            }
-//
+                            final String text = ((EditText) v).getText().toString();
+
+                            if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                                PlaylistMenuAdapter.this.changeQueryUrl(Uri.parse(
+                                        AppConfig.getProperty("url", PlaylistMenuAdapter.this.activity.getApplicationContext())
+                                        + Endpoints.GET_PLAYLISTS
+                                        + (text.length() > 0 ? "?titleIncludes=" + ((EditText) v).getText() : "")
+                                ));
+                            }
+
                             return true;
                         });
 
@@ -174,6 +192,16 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(@NonNull @NotNull RecyclerView.ViewHolder holder, int position) {
         switch (this.getItemViewType(position)) {
             case VIEW_HEADER:
+                final ViewHolderHeader header = (ViewHolderHeader) holder;
+
+                header.setOnSearchEnter((text) -> {
+                    this.changeQueryUrl(Uri.parse(
+                            AppConfig.getProperty("url", this.activity.getApplicationContext())
+                                    + Endpoints.GET_PLAYLISTS
+                                    + (text.length() > 0 ? "?titleIncludes=" + text : "")
+                    ));
+                });
+
                 break;
             case VIEW_PLAYLIST_ITEM:
                 final PlaylistItem playlistItem = this.playlistMenuArray.get(position);
@@ -336,6 +364,10 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         private final View.OnClickListener addPlaylistClickListener;
 
+        private final Handler handler = new Handler(Looper.getMainLooper());
+
+        private OnSearchEnter onSearchEnter;
+
         public ViewHolderHeader(@NonNull @NotNull View itemView, View.OnClickListener addPlaylistClickListener) {
             super(itemView);
 
@@ -343,6 +375,62 @@ public class PlaylistMenuAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             constraintLayoutHeader = itemView.findViewById(R.id.playlist_menu_header_container);
             itemView.findViewById(R.id.playlist_menu_create_button).setOnClickListener(this.addPlaylistClickListener);
+
+            ((EditText) constraintLayoutHeader.findViewById(R.id.playlist_menu_search_bar_input))
+                    .addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            sendSearchAfterTime(s.toString(), 1200);
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {}
+                    });
+
+            constraintLayoutHeader.findViewById(R.id.playlist_menu_search_bar_input).setOnFocusChangeListener((view, focused) -> {
+                if (!focused) {
+                    InputMethodManager inputMethodManager =(InputMethodManager) this.constraintLayoutHeader.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+                    inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            });
+
+            constraintLayoutHeader.findViewById(R.id.playlist_menu_search_bar_input)
+                    .setOnKeyListener((v, keyCode, event) -> {
+                        final String text = ((EditText) v).getText().toString();
+
+                        if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+                            if (this.onSearchEnter != null) {
+                                this.onSearchEnter.enter(text);
+                            }
+                        }
+
+                        if (keyCode == KeyEvent.KEYCODE_DEL && event.getAction() == KeyEvent.ACTION_DOWN) {
+                            return false;
+                        }
+
+                        return false;
+                    });
+        }
+
+        private void sendSearchAfterTime(String search, int milliseconds) {
+            handler.postDelayed(() -> {
+                final String currentString = ((EditText) constraintLayoutHeader.findViewById(R.id.playlist_menu_search_bar_input)).getText().toString();
+
+                if (currentString.equals(search)) {
+                    PlaylistMenuAdapter.ViewHolderHeader.this.onSearchEnter.enter(search);
+                }
+            }, milliseconds);
+        }
+
+        public void setOnSearchEnter(OnSearchEnter onSearchEnter) {
+            this.onSearchEnter = onSearchEnter;
+        }
+
+        public interface OnSearchEnter {
+            void enter(String searchText);
         }
     }
 
