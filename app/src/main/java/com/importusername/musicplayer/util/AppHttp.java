@@ -18,4 +18,8 @@ public class AppHttp {
 
         return queryParams;
     }
+
+    public static boolean isResponseOK(int status) {
+        return (status > 199 && status < 300);
+    }
 }

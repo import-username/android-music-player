@@ -51,4 +51,6 @@
     <string name="add_song_from_youtube">Add From Youtube</string>
     <string name="create_song_from_yt_title">Paste in a <font color="#DB1D40">youtube</font> video url.</string>
     <string name="upload_youtube_link"><font color="#DB1D40">Upload</font> Link</string>
+    <string name="recently_played_songs_title">Recent songs</string>
+    <string name="home_menu_header_title">Home</string>
 </resources>
